@@ -34,13 +34,24 @@ export class CameraRig {
 
   _bind() {
     const d = this.dom;
+    // touch: one finger looks around, two fingers pinch the lens (binocular zoom)
+    this._touches = new Map();
+    const pinchDist = () => { const p = [...this._touches.values()]; return Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); };
     d.addEventListener('pointerdown', (e) => {
       if (this.placing) { this._place(e); return; }
       if (this.mode !== 'observer' && this.mode !== 'aircraft') return;
+      this._touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this._touches.size === 2) { this._drag = null; this._pinch = { d: pinchDist(), fov: this.fov }; return; }
       this._drag = { x: e.clientX, y: e.clientY, yaw: this.yaw, pitch: this.pitch };
       d.setPointerCapture(e.pointerId);
     });
     d.addEventListener('pointermove', (e) => {
+      if (this._touches.has(e.pointerId)) this._touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this._pinch && this._touches.size === 2) {
+        this.fov = Math.max(2, Math.min(80, this._pinch.fov * (this._pinch.d / Math.max(10, pinchDist()))));
+        this.autoAim = false;
+        return;
+      }
       if (!this._drag) return;
       const s = (this.fov / 50) * 0.0035;
       const dx = e.clientX - this._drag.x, dy = e.clientY - this._drag.y;
@@ -48,7 +59,11 @@ export class CameraRig {
       this.yaw = this._drag.yaw - dx * s;
       this.pitch = Math.max(-1.4, Math.min(1.5, this._drag.pitch + dy * s));
     });
-    const end = () => { this._drag = null; };
+    const end = (e) => {
+      this._touches.delete(e.pointerId);
+      if (this._touches.size < 2) { if (this._pinch) this.app.emit('camera', this.state()); this._pinch = null; }
+      this._drag = null;
+    };
     d.addEventListener('pointerup', end);
     d.addEventListener('pointercancel', end);
     d.addEventListener('dblclick', () => { this.autoAim = true; this.app.emit('camera', this.state()); });
@@ -167,7 +182,7 @@ export class CameraRig {
     let y = V.active ? V.fireY : Math.max(0, det.hob);
     if (det.isUnderwater) y = Math.min(1200, 300 + t * 120);
     // look slightly below the cap centre so the stem is in frame
-    const target = new THREE.Vector3(0, y * 0.72, 0);
+    const target = new THREE.Vector3(0, y * (this.camera.aspect < 0.9 ? 0.85 : 0.72), 0);
     return target;
   }
 
@@ -197,6 +212,8 @@ export class CameraRig {
       let wantFov = Math.max(6, Math.min(62, (Math.atan2(size * 1.25, dist) * 2 * 180) / Math.PI));
       // before the shot: a natural field of view that shows the landscape and the tower on the horizon
       if (t <= 0) wantFov = 40;
+      // portrait phones: frame wider and push the subject below the title bar
+      if (this.camera.aspect < 0.9) wantFov = Math.min(75, wantFov * 1.3);
       // Rapatronic: long lens, fireball fills a third of the frame
       if (this.app.photo && V.active) {
         const R = Math.max(1, V.Rf);

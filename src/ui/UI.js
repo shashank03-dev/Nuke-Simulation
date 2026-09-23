@@ -170,7 +170,8 @@ export class UI {
       h('div', { class: 'row' }, h('span', { class: 'num' }, s.numeral), h('span', { class: 'nm' }, s.name)),
       h('div', { class: 'dt' }, `${s.device} · ${s.date}`),
       this.yieldEl = h('div', { class: 'dt' }),
-      this.clockEl, this.phaseEl);
+      this.clockEl, this.phaseEl,
+      this.miniEl = h('div', { class: 'mini', 'aria-hidden': 'true' }));
 
     const top = h('div', { class: 'hud-top' },
       h('button', { class: 'btn', onclick: () => this.showArchive(), title: 'Archive (A)' }, '☰ Archive'),
@@ -206,18 +207,27 @@ export class UI {
         h('button', { class: 'btn primary', onclick: () => this.capture() }, 'Capture PNG'),
         h('button', { class: 'btn', onclick: () => app.setPhoto(false) }, 'Exit')));
 
-    this.hud = h('div', { class: 'hud' }, this.ringLabels, title, top, readout, controls, cams, tl, this.notes, this.photoFrame);
+    // phones: the readout, camera and parameter panels become bottom sheets behind a tab bar
+    const tabs = [['readout', 'Readout'], ['cams', 'Camera'], ['controls', 'Parameters']];
+    this.sheetTabs = h('div', { class: 'sheet-tabs', role: 'tablist' }, tabs.map(([k, label]) =>
+      h('button', { class: 'chip', role: 'tab', 'data-sheet': k, 'aria-selected': 'false', onclick: () => this.toggleSheet(k) }, label)));
+    this.hud = h('div', { class: 'hud' }, this.ringLabels, title, top, readout, controls, cams, tl, this.sheetTabs, this.notes, this.photoFrame);
     this.root.append(this.hud);
     this.bindKeys();
     this.hudParts = { title, readout, controls, cams, tl, top };
+    this.sheet = null;
+    this._layout = () => this.hud?.style.setProperty('--tlh', `${tl.offsetHeight}px`);
+    this._layout();
+    if (!this._layoutBound) { this._layoutBound = true; window.addEventListener('resize', () => this._layout?.()); }
+    requestAnimationFrame(() => this._layout());
     if (!this._photoBound) {
       this._photoBound = true;
       app.on('photo', (on) => {
         const P = this.hudParts;
         this.photoFrame.classList.toggle('hidden', !on);
         this.photoBtn.classList.toggle('on', on);
-        for (const el of [P.title, P.readout, P.controls, P.cams, P.tl, P.top, this.notes, this.ringLabels]) el.style.opacity = on ? '0' : '';
-        for (const el of [P.readout, P.controls, P.cams, P.tl, P.top]) el.style.pointerEvents = on ? 'none' : '';
+        for (const el of [P.title, P.readout, P.controls, P.cams, P.tl, P.top, this.notes, this.ringLabels, this.sheetTabs]) el.style.opacity = on ? '0' : '';
+        for (const el of [P.readout, P.controls, P.cams, P.tl, P.top, this.sheetTabs]) el.style.pointerEvents = on ? 'none' : '';
       });
       app.on('play', () => { this.playBtn.textContent = '❚❚'; });
       app.on('pause', () => { this.playBtn.textContent = '▶'; });
@@ -445,6 +455,12 @@ export class UI {
       else if (/^[1-8]$/.test(e.key)) this.setRate(RATES[+e.key - 1].r);
     });
   }
+  /** Phone layout: open one bottom sheet at a time (tap the active tab again to close it). */
+  toggleSheet(k) {
+    this.sheet = this.sheet === k ? null : k;
+    for (const n of ['readout', 'cams', 'controls']) this.hud.classList.toggle(`sheet-${n}`, this.sheet === n);
+    for (const b of this.sheetTabs.children) b.classList.toggle('on', b.dataset.sheet === this.sheet), b.setAttribute('aria-selected', String(b.dataset.sheet === this.sheet));
+  }
   toggleHud() { this.hudVisible = !this.hudVisible; this.hud.classList.toggle('off', !this.hudVisible); if (!this.hudVisible) this.toast('Press H to show the interface'); }
   toast(msg) { const t = h('div', { class: 'toast panel' }, msg); this.root.append(t); setTimeout(() => t.remove(), 2200); }
 
@@ -535,6 +551,11 @@ export class UI {
     const posName = app.rig.mode === 'aircraft' ? 'Tu-95V (riding along)' : o?.name || 'Observer';
     this.ro.who.replaceChildren(posName, h('small', {}, `${fmtDist(rep.groundRange)} from ground zero · ${fmtDist(rep.slantRange)} slant`));
     const dtA = rep.arrival - t;
+    if (this.miniEl) {
+      const where = `${o?.name || 'Observer'} · ${fmtDist(rep.groundRange)}`;
+      const when = t < 0 ? `blast T+${rep.arrival.toFixed(1)} s` : dtA > 0 ? `blast in ${dtA < 1 ? (dtA * 1000).toFixed(0) + ' ms' : dtA.toFixed(1) + ' s'}` : `hit · ${rep.overpressurePsi.toFixed(2)} psi`;
+      this.miniEl.textContent = `${where} · ${when}`;
+    }
     if (t < 0) { this.ro.eta.textContent = `Blast would arrive T+${rep.arrival.toFixed(1)} s after the flash`; this.ro.eta.className = 'eta'; }
     else if (dtA > 0) { this.ro.eta.textContent = `Light is here. Blast wave arrives in ${dtA < 1 ? (dtA * 1000).toFixed(0) + ' ms' : dtA.toFixed(1) + ' s'}`; this.ro.eta.className = 'eta'; }
     else { this.ro.eta.textContent = `Blast wave arrived at T+${rep.arrival < 1 ? (rep.arrival * 1000).toFixed(0) + ' ms' : rep.arrival.toFixed(1) + ' s'}`; this.ro.eta.className = 'eta hit'; }
