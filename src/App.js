@@ -13,10 +13,11 @@ import { AudioEngine } from './audio/AudioEngine.js';
 import { CameraRig } from './CameraRig.js';
 
 export const QUALITY = {
-  low: { name: 'Low', pixelRatio: 0.7, volScale: 0.33, volSteps: 40, shadow: 1024, texRes: '1k', hdrRes: '1k', samples: 0, veg: 2500, debris: 1200 },
-  medium: { name: 'Medium', pixelRatio: 1, volScale: 0.45, volSteps: 60, shadow: 2048, texRes: '1k', hdrRes: '2k', samples: 2, veg: 5000, debris: 2500 },
-  high: { name: 'High', pixelRatio: 1.25, volScale: 0.5, volSteps: 84, shadow: 2048, texRes: '2k', hdrRes: '2k', samples: 4, veg: 9000, debris: 4000 },
-  ultra: { name: 'Ultra', pixelRatio: 2, volScale: 0.7, volSteps: 128, shadow: 4096, texRes: '2k', hdrRes: '4k', samples: 4, veg: 15000, debris: 5000 },
+  // renderScale multiplies the screen's pixel density (ultra supersamples even on 1× screens); maxRatio caps it
+  low: { name: 'Low', renderScale: 0.75, maxRatio: 1, pixelRatio: 0.7, volScale: 0.33, volSteps: 40, shadow: 1024, texRes: '1k', hdrRes: '1k', samples: 0, veg: 2500, debris: 1200 },
+  medium: { name: 'Medium', renderScale: 1, maxRatio: 1.5, pixelRatio: 1, volScale: 0.45, volSteps: 60, shadow: 2048, texRes: '1k', hdrRes: '2k', samples: 2, veg: 5000, debris: 2500 },
+  high: { name: 'High', renderScale: 1.25, maxRatio: 2, pixelRatio: 1.25, volScale: 0.5, volSteps: 84, shadow: 2048, texRes: '2k', hdrRes: '2k', samples: 4, veg: 9000, debris: 4000 },
+  ultra: { name: 'Ultra', renderScale: 1.6, maxRatio: 2.5, pixelRatio: 2, volScale: 0.7, volSteps: 128, shadow: 4096, texRes: '2k', hdrRes: '4k', samples: 4, veg: 15000, debris: 5000 },
 };
 
 const smooth = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
@@ -24,6 +25,7 @@ const smooth = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a
 export class App {
   constructor(canvas, { quality = 'high' } = {}) {
     this.canvas = canvas;
+    if (!QUALITY[quality]) quality = 'high';
     this.qualityKey = quality;
     this.quality = QUALITY[quality];
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: false, alpha: false });
@@ -124,7 +126,9 @@ export class App {
   _resize() {
     const w = window.innerWidth, h = window.innerHeight;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const ratio = Math.max(0.5, Math.min(dpr, this.quality.pixelRatio));
+    const q = this.quality;
+    const ratio = Math.max(0.5, Math.min(q.maxRatio, dpr * q.renderScale));
+    this.renderRatio = ratio;
     this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(w, h, false);
     const bw = Math.floor(w * ratio), bh = Math.floor(h * ratio);
@@ -135,6 +139,7 @@ export class App {
   }
 
   setQuality(key) {
+    if (!QUALITY[key]) return;
     this.qualityKey = key;
     this.quality = QUALITY[key];
     this.props.quality = this.quality;
@@ -143,7 +148,9 @@ export class App {
     this.sun.shadow.mapSize.set(this.quality.shadow, this.quality.shadow);
     this.sun.shadow.map?.dispose(); this.sun.shadow.map = null;
     this._resize();
-    if (this.scenario) this.rebuild({ textures: true });
+    // re-request textures and the sky at the new preset's resolutions (sharper ones stream in)
+    if (this.scenario) this.rebuild({ textures: true, sky: true }).then(() => this.warmup());
+    this.emit('quality', key);
   }
 
   // ------------------------------------------------------------------ scenarios

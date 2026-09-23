@@ -14,8 +14,11 @@ async function boot() {
   }
   const qs = new URLSearchParams(location.search);
   const mobile = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 700;
-  const quality = qs.get('q') || (mobile ? 'low' : 'high');
+  let saved = null;
+  try { saved = localStorage.getItem('gz-quality'); } catch { /* storage unavailable */ }
+  const quality = qs.get('q') || saved || (mobile ? 'low' : 'high');
   const app = new App(document.getElementById('gl'), { quality });
+  app.manualQuality = !!(qs.get('q') || saved);
   const ui = new UI(root, app);
   if (qs.get('vs')) { app.volume.scale = +qs.get('vs'); app._resize(); }
   window.__app = app; // handy for debugging from the console

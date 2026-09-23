@@ -255,7 +255,14 @@ export class UI {
       SKY_PRESETS.map((s) => h('option', { value: s.id }, s.name)));
     this.humInput = h('input', { type: 'range', min: 0, max: 100, step: 1, 'aria-label': 'Humidity' });
     this.humInput.addEventListener('input', () => { humLabel.textContent = `${this.humInput.value}%`; app.params.humidity = this.humInput.value / 100; });
-    this.qualSelect = h('select', { 'aria-label': 'Quality', onchange: (e) => app.setQuality(e.target.value) },
+    this.qualSelect = h('select', { 'aria-label': 'Quality', onchange: (e) => {
+      // a manual choice is respected: auto step-down stays off, and the choice is remembered
+      this._autoQDone = true;
+      try { localStorage.setItem('gz-quality', e.target.value); } catch { /* storage unavailable */ }
+      app.setQuality(e.target.value);
+      const q = QUALITY[e.target.value];
+      this.toast(`${q.name} quality · render ${app.renderRatio.toFixed(2)}× · ${q.volSteps} cloud steps · ${q.shadow}px shadows · ${q.texRes} textures · ${q.hdrRes} sky`);
+    } },
       Object.entries(QUALITY).map(([k, q]) => h('option', { value: k }, q.name)));
     this.ringsToggle = h('input', { type: 'checkbox', checked: app.ringsOn, onchange: (e) => app.setRings(e.target.checked) });
     this.labelsToggle = h('input', { type: 'checkbox', checked: true, onchange: (e) => this.ringLabels.classList.toggle('hidden', !e.target.checked) });
@@ -505,7 +512,7 @@ export class UI {
   /** Step quality down once if the GPU can't keep up (sustained > 45 ms frames). */
   autoQuality() {
     const app = this.app;
-    if (this._autoQDone || document.hidden) return;
+    if (this._autoQDone || this.app.manualQuality || document.hidden) return;
     const order = ['ultra', 'high', 'medium', 'low'];
     const i = order.indexOf(app.qualityKey);
     if (i < 0 || i >= order.length - 1) return;
