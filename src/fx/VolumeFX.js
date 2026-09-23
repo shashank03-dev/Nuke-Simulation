@@ -219,13 +219,13 @@ void medium(vec3 p, out float sig, out vec3 alb, out vec3 emit) {
       float rad = Rc * (0.9 + 0.35 * yn * yn);
       vec3 sp = p / Rc;
       vec4 n = N3(sp * vec3(1.2, 0.35, 1.2) + vec3(0.0, -uTime * 0.02, 0.0));
-      vec4 n2 = N3(sp * 1.9);
+      vec4 n2 = N3(sp * 1.3);
       float wall = Rc * (0.28 + 0.15 * n.r);
       float d = abs(length(p.xz) - rad * 0.78) - wall;
       d -= (n2.g - 0.5) * Rc * 0.25;
       float rr2 = length(p.xz) / (rad * 1.25);
       float topY = H * (1.0 - 0.35 * rr2 * rr2) + (n.r - 0.5) * Rc * 0.9;
-      float dens = ss(0.0, -Rc * 0.12, d) * ss(topY + Rc * 0.2, topY - Rc * 0.3, p.y) * uBakerA.z;
+      float dens = ss(0.0, -Rc * 0.22, d) * ss(topY + Rc * 0.2, topY - Rc * 0.3, p.y) * uBakerA.z;
       sig += uSigma.y * dens * 3.0; alb += wat * uSigma.y * dens * 3.0; wsum += uSigma.y * dens * 3.0;
     }
     // cauliflower head

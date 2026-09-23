@@ -161,31 +161,38 @@ export class Ocean {
             float s = 1.0 - smoothstep(uBaker.z * 0.85, uBaker.z * 1.05, rG);
             foam = max(foam, s * uBaker.w * (0.55 + 0.45 * vnoise(vWorld.xz / 18.0 + uTime * 0.2)));
           }
-          foam = max(foam, smoothstep(0.9, 2.2, vCrest) * 0.4);
-          foam = max(foam, shallow * smoothstep(0.55, 0.95, vnoise(vWorld.xz / 6.0 + vec2(uTime * 0.3, 0.0))) * step(vDepth, 0.7) * 0.7);
+          // wave-crest foam only; soft-edged so whitecaps fade in and out instead of blinking
+          foam = max(foam, smoothstep(1.1, 2.6, vCrest) * 0.3);
+          // gentle, slowly drifting surf over the reef flats (no hard noise threshold → no popping blobs)
+          float surf = (1.0 - smoothstep(0.1, 0.9, vDepth)) * (0.5 + 0.5 * vnoise(vWorld.xz / 40.0 + vec2(uTime * 0.05, 0.0)));
+          foam = max(foam, surf * 0.25);
           diffuseColor.rgb = mix(wc, vec3(0.85, 0.88, 0.9), foam);
-          diffuseColor.a = mix(mix(0.72, 0.985, 1.0 - shallow), 1.0, foam);
+          diffuseColor.a = mix(mix(0.86, 0.985, 1.0 - shallow), 1.0, foam);
         `)
         .replace('#include <dithering_fragment>', `#include <dithering_fragment>
           // sun/fireball glints can exceed half-float range (65504) and turn into Inf → black blotches
           gl_FragColor.rgb = min(gl_FragColor.rgb, vec3(30000.0));`)
         .replace('#include <roughnessmap_fragment>', `
-          float roughnessFactor = mix(0.03, 0.22, smoothstep(300.0, 20000.0, vDist)) + foam * 0.6;`)
+          // specular anti-aliasing: when a pixel covers more water than a ripple is wide, the ripples
+          // can't be resolved, so their slope variance goes into roughness instead of twinkling glints
+          float wFoot = length(fwidth(vWorld.xz));
+          float specAA = smoothstep(0.05, 1.5, wFoot);
+          float roughnessFactor = mix(0.05, 0.28, max(specAA, smoothstep(300.0, 20000.0, vDist))) + foam * 0.6;`)
         .replace('#include <normal_fragment_maps>', `
           {
             // micro ripples: two scrolling noise layers → normal perturbation
             vec2 q = vWorld.xz;
             float e = 0.35;
-            float fadeN = 1.0 - smoothstep(80.0, 1500.0, vDist);
+            float fadeN = (1.0 - smoothstep(80.0, 1500.0, vDist)) * (1.0 - smoothstep(0.04, 0.5, length(fwidth(vWorld.xz))));
             float n0 = vnoise(q / 3.1 + vec2(uTime * 0.21, uTime * 0.13)) + 0.5 * vnoise(q / 1.3 - vec2(uTime * 0.31, -uTime * 0.17));
             float nx = vnoise((q + vec2(e, 0.0)) / 3.1 + vec2(uTime * 0.21, uTime * 0.13)) + 0.5 * vnoise((q + vec2(e, 0.0)) / 1.3 - vec2(uTime * 0.31, -uTime * 0.17));
             float nz = vnoise((q + vec2(0.0, e)) / 3.1 + vec2(uTime * 0.21, uTime * 0.13)) + 0.5 * vnoise((q + vec2(0.0, e)) / 1.3 - vec2(uTime * 0.31, -uTime * 0.17));
-            vec3 pn = normalize(vWN + vec3(-(nx - n0), 0.0, -(nz - n0)) * 0.55 * fadeN);
+            vec3 pn = normalize(vWN + vec3(-(nx - n0), 0.0, -(nz - n0)) * 0.4 * fadeN);
             normal = normalize((viewMatrix * vec4(pn, 0.0)).xyz);
           }`);
       mat.userData.shader = shader;
     };
-    mat.customProgramCacheKey = () => 'ocean-v1';
+    mat.customProgramCacheKey = () => 'ocean-v2';
   }
 
   setPalette(deep, shallow, seaState = 1) {
