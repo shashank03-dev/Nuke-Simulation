@@ -1,0 +1,18 @@
+{
+  "name": "nuke-simulation",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "GROUND ZERO — a photoreal three.js sandbox of four historic nuclear tests, driven by published effects scaling laws.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  }
+}
