@@ -166,6 +166,9 @@ export class Ocean {
           diffuseColor.rgb = mix(wc, vec3(0.85, 0.88, 0.9), foam);
           diffuseColor.a = mix(mix(0.72, 0.985, 1.0 - shallow), 1.0, foam);
         `)
+        .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+          // sun/fireball glints can exceed half-float range (65504) and turn into Inf → black blotches
+          gl_FragColor.rgb = min(gl_FragColor.rgb, vec3(30000.0));`)
         .replace('#include <roughnessmap_fragment>', `
           float roughnessFactor = mix(0.03, 0.22, smoothstep(300.0, 20000.0, vDist)) + foam * 0.6;`)
         .replace('#include <normal_fragment_maps>', `

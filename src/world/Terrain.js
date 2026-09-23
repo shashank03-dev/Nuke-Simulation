@@ -264,6 +264,8 @@ export class Terrain {
           }
           diffuseColor.rgb *= alb;
         `)
+        .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+          gl_FragColor.rgb = min(gl_FragColor.rgb, vec3(30000.0));`)
         .replace('#include <roughnessmap_fragment>', `
           // natural ground is never glossy; only the fused trinitite glass is
           float roughnessFactor = mix(max(arm.g, 0.82), 0.2, glass * 0.8);

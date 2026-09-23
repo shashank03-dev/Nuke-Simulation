@@ -13,6 +13,7 @@ export function applyCurvaturePatch(mat) {
   mat.onBeforeCompile = (shader, r) => {
     if (prev) prev(shader, r);
     shader.uniforms.uCamPos = curvatureUniforms.uCamPos;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <dithering_fragment>', '#include <dithering_fragment>\n  gl_FragColor.rgb = min(gl_FragColor.rgb, vec3(30000.0));');
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${CURVATURE_GLSL}`)
       .replace('#include <project_vertex>', `

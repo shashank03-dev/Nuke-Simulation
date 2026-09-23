@@ -27,6 +27,8 @@ uniform vec2 uRes;
 uniform vec2 uVolTexel;
 
 float perspectiveDepthToViewZ(float d, float n, float f) { return (n * f) / ((f - n) * d - f); }
+// drop NaN/Inf texels (a single one would be smeared into a blotch by the bloom)
+vec3 safe3(vec3 c) { bvec3 bad = bvec3(isnan(c.x) || isinf(c.x), isnan(c.y) || isinf(c.y), isnan(c.z) || isinf(c.z)); if (any(bad)) return vec3(0.0); return min(c, vec3(60000.0)); }
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
@@ -81,8 +83,9 @@ void main() {
     vec2 n = vec2(vn(vUv * 90.0 + vec2(0.0, uTime * 6.0)), vn(vUv * 90.0 + vec2(17.0, uTime * 5.0))) - 0.5;
     uv += n * uHeat.w * mask * 0.006;
   }
-  vec3 scene = texture(tScene, uv).rgb;
+  vec3 scene = safe3(texture(tScene, uv).rgb);
   vec4 vol = volUp(uv);
+  vol = vec4(safe3(vol.rgb), clamp(vol.a, 0.0, 1.0));
   vec3 col = scene * vol.a + vol.rgb;
 
   // ---- flash air-light: the air itself scatters the fireball's light toward the eye
@@ -99,7 +102,7 @@ void main() {
     col += uFlash * 0.0006 / (ang * ang + 0.0004);
   }
   col += add;
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(safe3(col), 1.0);
 }
 `;
 
