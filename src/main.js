@@ -19,15 +19,16 @@ async function boot() {
   const ui = new UI(root, app);
   if (qs.get('vs')) { app.volume.scale = +qs.get('vs'); app._resize(); }
   window.__app = app; // handy for debugging from the console
-  ui.showLoader();
+  const canvas = document.getElementById('gl');
+  app.on('firstframe', () => canvas.classList.add('ready'));
   app.start();
   app.on('frame', () => ui.update());
 
-  // Attract scene behind the intro: Trinity's cloud a minute after the shot, seen from above Base Camp.
   const start = qs.get('scenario');
-  await app.loadScenario(start || 'trinity');
-  ui.logLine('Physics tables integrated · shock arrival, thermal pulse, cloud rise', 'ok');
   if (start) {
+    // deep link straight into a sandbox
+    ui.showLoader();
+    await app.loadScenario(start);
     ui.hideLoader();
     ui.buildHUD();
     const t = parseFloat(qs.get('t'));
@@ -39,18 +40,23 @@ async function boot() {
     if (qs.get('hud') === '0') ui.toggleHud();
     return;
   }
-  app.seek(55);
-  app.rig.setMode('orbit');
-  app.camera.position.set(-5200, 2400, 7800);
-  app.rig.orbit.target.set(0, 4500, 0);
-  app.rig.orbit.autoRotate = true;
-  app.rig.orbit.autoRotateSpeed = 0.25;
-  app.rig.orbit.update();
-  ui.hideLoader();
+
+  // The intro is on screen immediately; the attract scene (Trinity's cloud a minute after the shot,
+  // seen from above Base Camp) loads underneath it and fades in when its first frame is ready.
   ui.showIntro(() => {
     app.rig.orbit.autoRotate = false;
     ui.showArchive();
   });
+  await app.loadScenario('trinity');
+  if (app.scenario?.id === 'trinity' && !ui.hud) {
+    app.seek(55);
+    app.rig.setMode('orbit');
+    app.camera.position.set(-5200, 2400, 7800);
+    app.rig.orbit.target.set(0, 4500, 0);
+    app.rig.orbit.autoRotate = !ui.archive;
+    app.rig.orbit.autoRotateSpeed = 0.25;
+    app.rig.orbit.update();
+  }
 }
 
 boot().catch((e) => {

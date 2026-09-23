@@ -1,0 +1,439 @@
+{
+ "generated": "2026-09-23T17:17:02.108Z",
+ "textures": {
+  "rusty_metal": {
+   "name": "Rusty Metal",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_metal/rusty_metal_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_metal/rusty_metal_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rusty_metal/rusty_metal_diff_4k.jpg",
+     "preview": "/ph/rusty_metal_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_metal/rusty_metal_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_metal/rusty_metal_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rusty_metal/rusty_metal_nor_gl_4k.jpg",
+     "preview": "/ph/rusty_metal_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_metal/rusty_metal_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_metal/rusty_metal_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rusty_metal/rusty_metal_arm_4k.jpg",
+     "preview": "/ph/rusty_metal_arm.webp"
+    }
+   }
+  },
+  "concrete_wall_008": {
+   "name": "Concrete Wall 008",
+   "authors": "Dario Barresi, Charlotte Baglioni",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_008/concrete_wall_008_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_wall_008/concrete_wall_008_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_diff_4k.jpg",
+     "preview": "/ph/concrete_wall_008_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_008/concrete_wall_008_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_wall_008/concrete_wall_008_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_nor_gl_4k.jpg",
+     "preview": "/ph/concrete_wall_008_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_wall_008/concrete_wall_008_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_wall_008/concrete_wall_008_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_arm_4k.jpg",
+     "preview": "/ph/concrete_wall_008_arm.webp"
+    }
+   }
+  },
+  "weathered_plank_siding": {
+   "name": "Weathered Plank Siding",
+   "authors": "Dimitrios Savva",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_plank_siding/weathered_plank_siding_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_plank_siding/weathered_plank_siding_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/weathered_plank_siding/weathered_plank_siding_diff_4k.jpg",
+     "preview": "/ph/weathered_plank_siding_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_plank_siding/weathered_plank_siding_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_plank_siding/weathered_plank_siding_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/weathered_plank_siding/weathered_plank_siding_nor_gl_4k.jpg",
+     "preview": "/ph/weathered_plank_siding_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/weathered_plank_siding/weathered_plank_siding_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/weathered_plank_siding/weathered_plank_siding_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/weathered_plank_siding/weathered_plank_siding_arm_4k.jpg",
+     "preview": "/ph/weathered_plank_siding_arm.webp"
+    }
+   }
+  },
+  "roof_07": {
+   "name": "Roof 07",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/roof_07/roof_07_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/roof_07/roof_07_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/roof_07/roof_07_diff_4k.jpg",
+     "preview": "/ph/roof_07_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/roof_07/roof_07_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/roof_07/roof_07_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/roof_07/roof_07_nor_gl_4k.jpg",
+     "preview": "/ph/roof_07_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/roof_07/roof_07_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/roof_07/roof_07_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/roof_07/roof_07_arm_4k.jpg",
+     "preview": "/ph/roof_07_arm.webp"
+    }
+   }
+  },
+  "rusty_painted_metal": {
+   "name": "Rusty Painted Metal",
+   "authors": "Amal Kumar",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_painted_metal/rusty_painted_metal_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rusty_painted_metal/rusty_painted_metal_diff_4k.jpg",
+     "preview": "/ph/rusty_painted_metal_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_painted_metal/rusty_painted_metal_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rusty_painted_metal/rusty_painted_metal_nor_gl_4k.jpg",
+     "preview": "/ph/rusty_painted_metal_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rusty_painted_metal/rusty_painted_metal_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rusty_painted_metal/rusty_painted_metal_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rusty_painted_metal/rusty_painted_metal_arm_4k.jpg",
+     "preview": "/ph/rusty_painted_metal_arm.webp"
+    }
+   }
+  },
+  "bark_brown_02": {
+   "name": "Bark Brown 02",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_02/bark_brown_02_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/bark_brown_02/bark_brown_02_diff_4k.jpg",
+     "preview": "/ph/bark_brown_02_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_02/bark_brown_02_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/bark_brown_02/bark_brown_02_nor_gl_4k.jpg",
+     "preview": "/ph/bark_brown_02_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/bark_brown_02/bark_brown_02_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/bark_brown_02/bark_brown_02_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/bark_brown_02/bark_brown_02_arm_4k.jpg",
+     "preview": "/ph/bark_brown_02_arm.webp"
+    }
+   }
+  },
+  "gravelly_sand": {
+   "name": "Gravelly Sand",
+   "authors": "Dario Barresi",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/gravelly_sand/gravelly_sand_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravelly_sand/gravelly_sand_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/gravelly_sand/gravelly_sand_diff_4k.jpg",
+     "preview": "/ph/gravelly_sand_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/gravelly_sand/gravelly_sand_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravelly_sand/gravelly_sand_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/gravelly_sand/gravelly_sand_nor_gl_4k.jpg",
+     "preview": "/ph/gravelly_sand_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/gravelly_sand/gravelly_sand_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/gravelly_sand/gravelly_sand_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/gravelly_sand/gravelly_sand_arm_4k.jpg",
+     "preview": "/ph/gravelly_sand_arm.webp"
+    }
+   }
+  },
+  "dry_ground_rocks": {
+   "name": "Dry Ground Rocks",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dry_ground_rocks/dry_ground_rocks_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/dry_ground_rocks/dry_ground_rocks_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/dry_ground_rocks/dry_ground_rocks_diff_4k.jpg",
+     "preview": "/ph/dry_ground_rocks_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dry_ground_rocks/dry_ground_rocks_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/dry_ground_rocks/dry_ground_rocks_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/dry_ground_rocks/dry_ground_rocks_nor_gl_4k.jpg",
+     "preview": "/ph/dry_ground_rocks_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dry_ground_rocks/dry_ground_rocks_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/dry_ground_rocks/dry_ground_rocks_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/dry_ground_rocks/dry_ground_rocks_arm_4k.jpg",
+     "preview": "/ph/dry_ground_rocks_arm.webp"
+    }
+   }
+  },
+  "rock_face": {
+   "name": "Rock Face",
+   "authors": "Greg Zaal, Dario Barresi",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_face/rock_face_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face/rock_face_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rock_face/rock_face_diff_4k.jpg",
+     "preview": "/ph/rock_face_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_face/rock_face_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face/rock_face_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rock_face/rock_face_nor_gl_4k.jpg",
+     "preview": "/ph/rock_face_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_face/rock_face_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face/rock_face_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rock_face/rock_face_arm_4k.jpg",
+     "preview": "/ph/rock_face_arm.webp"
+    }
+   }
+  },
+  "mud_cracked_dry_03": {
+   "name": "Mud Cracked Dry 03",
+   "authors": "Dario Barresi, Dimitrios Savva",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/mud_cracked_dry_03/mud_cracked_dry_03_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mud_cracked_dry_03/mud_cracked_dry_03_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/mud_cracked_dry_03/mud_cracked_dry_03_diff_4k.jpg",
+     "preview": "/ph/mud_cracked_dry_03_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/mud_cracked_dry_03/mud_cracked_dry_03_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mud_cracked_dry_03/mud_cracked_dry_03_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/mud_cracked_dry_03/mud_cracked_dry_03_nor_gl_4k.jpg",
+     "preview": "/ph/mud_cracked_dry_03_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/mud_cracked_dry_03/mud_cracked_dry_03_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/mud_cracked_dry_03/mud_cracked_dry_03_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/mud_cracked_dry_03/mud_cracked_dry_03_arm_4k.jpg",
+     "preview": "/ph/mud_cracked_dry_03_arm.webp"
+    }
+   }
+  },
+  "coast_sand_01": {
+   "name": "Coast Sand 01",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coast_sand_01/coast_sand_01_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_01/coast_sand_01_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coast_sand_01/coast_sand_01_diff_4k.jpg",
+     "preview": "/ph/coast_sand_01_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coast_sand_01/coast_sand_01_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_01/coast_sand_01_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coast_sand_01/coast_sand_01_nor_gl_4k.jpg",
+     "preview": "/ph/coast_sand_01_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coast_sand_01/coast_sand_01_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coast_sand_01/coast_sand_01_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coast_sand_01/coast_sand_01_arm_4k.jpg",
+     "preview": "/ph/coast_sand_01_arm.webp"
+    }
+   }
+  },
+  "coral_ground_02": {
+   "name": "Coral Ground 02",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coral_ground_02/coral_ground_02_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coral_ground_02/coral_ground_02_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coral_ground_02/coral_ground_02_diff_4k.jpg",
+     "preview": "/ph/coral_ground_02_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coral_ground_02/coral_ground_02_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coral_ground_02/coral_ground_02_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coral_ground_02/coral_ground_02_nor_gl_4k.jpg",
+     "preview": "/ph/coral_ground_02_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coral_ground_02/coral_ground_02_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coral_ground_02/coral_ground_02_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coral_ground_02/coral_ground_02_arm_4k.jpg",
+     "preview": "/ph/coral_ground_02_arm.webp"
+    }
+   }
+  },
+  "coral_gravel": {
+   "name": "Coral Gravel",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coral_gravel/coral_gravel_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coral_gravel/coral_gravel_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coral_gravel/coral_gravel_diff_4k.jpg",
+     "preview": "/ph/coral_gravel_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coral_gravel/coral_gravel_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coral_gravel/coral_gravel_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coral_gravel/coral_gravel_nor_gl_4k.jpg",
+     "preview": "/ph/coral_gravel_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coral_gravel/coral_gravel_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/coral_gravel/coral_gravel_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coral_gravel/coral_gravel_arm_4k.jpg",
+     "preview": "/ph/coral_gravel_arm.webp"
+    }
+   }
+  },
+  "snow_02": {
+   "name": "Snow 02",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/snow_02/snow_02_diff_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/snow_02/snow_02_diff_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/snow_02/snow_02_diff_4k.jpg",
+     "preview": "/ph/snow_02_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/snow_02/snow_02_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/snow_02/snow_02_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/snow_02/snow_02_nor_gl_4k.jpg",
+     "preview": "/ph/snow_02_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/snow_02/snow_02_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/snow_02/snow_02_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/snow_02/snow_02_arm_4k.jpg",
+     "preview": "/ph/snow_02_arm.webp"
+    }
+   }
+  },
+  "snow_field_aerial": {
+   "name": "Snow Field Aerial",
+   "authors": "Rob Tuytel",
+   "maps": {
+    "map": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/snow_field_aerial/snow_field_aerial_col_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/snow_field_aerial/snow_field_aerial_col_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/snow_field_aerial/snow_field_aerial_col_4k.jpg",
+     "preview": "/ph/snow_field_aerial_map.webp"
+    },
+    "normalMap": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/snow_field_aerial/snow_field_aerial_nor_gl_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/snow_field_aerial/snow_field_aerial_nor_gl_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/snow_field_aerial/snow_field_aerial_nor_gl_4k.jpg",
+     "preview": "/ph/snow_field_aerial_normalMap.webp"
+    },
+    "arm": {
+     "1k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/snow_field_aerial/snow_field_aerial_arm_1k.jpg",
+     "2k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/snow_field_aerial/snow_field_aerial_arm_2k.jpg",
+     "4k": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/snow_field_aerial/snow_field_aerial_arm_4k.jpg",
+     "preview": "/ph/snow_field_aerial_arm.webp"
+    }
+   }
+  }
+ },
+ "hdris": {
+  "qwantani_dawn_puresky": {
+   "name": "Qwantani Dawn (Pure Sky)",
+   "authors": "Greg Zaal, Jarod Guest",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_dawn_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_dawn_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/qwantani_dawn_puresky_4k.hdr"
+   }
+  },
+  "kloofendal_48d_partly_cloudy_puresky": {
+   "name": "Kloofendal 48d Partly Cloudy (Pure Sky)",
+   "authors": "Greg Zaal, Jarod Guest",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloofendal_48d_partly_cloudy_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/kloofendal_48d_partly_cloudy_puresky_4k.hdr"
+   }
+  },
+  "qwantani_sunrise_puresky": {
+   "name": "Qwantani Sunrise (Pure Sky)",
+   "authors": "Greg Zaal, Jarod Guest",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_sunrise_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_sunrise_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/qwantani_sunrise_puresky_4k.hdr"
+   }
+  },
+  "syferfontein_1d_clear_puresky": {
+   "name": "Syferfontein 1d Clear (Pure Sky)",
+   "authors": "Greg Zaal, Jarod Guest",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/syferfontein_1d_clear_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/syferfontein_1d_clear_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/syferfontein_1d_clear_puresky_4k.hdr"
+   }
+  },
+  "qwantani_night_puresky": {
+   "name": "Qwantani Night (Pure Sky)",
+   "authors": "Greg Zaal, Jarod Guest",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_night_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_night_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/qwantani_night_puresky_4k.hdr"
+   }
+  },
+  "kloofendal_43d_clear_puresky": {
+   "name": "Kloofendal 43d Clear (Pure Sky)",
+   "authors": "Greg Zaal",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_43d_clear_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloofendal_43d_clear_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/kloofendal_43d_clear_puresky_4k.hdr"
+   }
+  },
+  "kloofendal_overcast_puresky": {
+   "name": "Kloofendal Overcast (Pure Sky)",
+   "authors": "Greg Zaal",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_overcast_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloofendal_overcast_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/kloofendal_overcast_puresky_4k.hdr"
+   }
+  },
+  "qwantani_dusk_2_puresky": {
+   "name": "Qwantani Dusk 2 (Pure Sky)",
+   "authors": "Greg Zaal, Jarod Guest",
+   "res": {
+    "1k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_dusk_2_puresky_1k.hdr",
+    "2k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/qwantani_dusk_2_puresky_2k.hdr",
+    "4k": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/4k/qwantani_dusk_2_puresky_4k.hdr"
+   }
+  }
+ }
+}

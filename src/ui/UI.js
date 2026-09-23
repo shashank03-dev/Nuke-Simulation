@@ -75,12 +75,20 @@ export class UI {
       ...ps,
       h('div', { class: 'actions' }, enter,
         h('button', { class: 'btn', onclick: () => this.showCredits() }, 'Sources & credits')),
+      this.introStatus = h('div', { class: 'status', 'aria-live': 'polite' }, 'Preparing the scene…'),
       h('div', { class: 'fine' },
         'Headphones recommended. Everything you see is computed from the published effects scaling laws (Glasstone & Dolan, Taylor–Sedov, Kinney–Graham). ',
         'Textures and skies are fetched live from Poly Haven (CC0). Nothing here describes how a weapon is built; this is about what one does.'),
     );
     const fade = () => { el.classList.add('fade'); setTimeout(() => el.remove(), 1300); };
     this.root.append(el);
+    const off = this.app.lab.onProgress(({ pending, done }) => {
+      if (this.introStatus) this.introStatus.textContent = `Fetching textures and skies from Poly Haven · ${done}/${pending}`;
+    });
+    this.app.on('firstframe', () => {
+      off();
+      if (this.introStatus) this.introStatus.textContent = 'Scene ready · full-resolution textures streaming in';
+    });
     // typewriter
     let li = 0, ci = 0;
     const type = () => {

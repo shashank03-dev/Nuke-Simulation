@@ -3,16 +3,18 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "GROUND ZERO — a photoreal three.js sandbox of four historic nuclear tests, driven by published effects scaling laws.",
+  "description": "GROUND ZERO \u2014 a photoreal three.js sandbox of four historic nuclear tests, driven by published effects scaling laws.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "assets": "node scripts/prepare-assets.mjs"
   },
   "dependencies": {
     "three": "^0.186.0"
   },
   "devDependencies": {
+    "sharp": "^0.35.4",
     "vite": "^8.3.0"
   }
 }

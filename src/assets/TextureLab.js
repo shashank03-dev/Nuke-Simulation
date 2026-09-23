@@ -1,33 +1,55 @@
 import * as THREE from 'three';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
+import MANIFEST from './manifest.json';
 
 /**
- * TextureLab — fetches CC0 HDRIs and PBR material sets live from Poly Haven
- * (https://polyhaven.com, API: https://api.polyhaven.com) with graceful procedural fallbacks.
+ * TextureLab — CC0 HDRIs and PBR material sets from Poly Haven (https://polyhaven.com).
+ *
+ * Fast start without losing quality:
+ *  • URLs come from a manifest resolved at dev time (scripts/prepare-assets.mjs), so the browser goes
+ *    straight to the dl.polyhaven.org CDN instead of making two API round-trips per asset.
+ *  • Every PBR map first appears as a 512 px WebP preview (~200 KB per material). The original
+ *    Poly Haven 1k/2k JPEGs then stream in the background and replace the preview in place, so the
+ *    final image is the full-resolution original.
+ *  • HDRIs appear at 1k first and upgrade to the quality preset's resolution.
+ *  • Images are decoded off the main thread (createImageBitmap) and uploads are spread over frames.
+ * Anything missing from the manifest falls back to the live Poly Haven API, then to procedural textures.
  */
 const API = 'https://api.polyhaven.com';
 const TIMEOUT = 25000;
+const MAP_KEYS = { map: 'Diffuse', normalMap: 'nor_gl', arm: 'arm' };
+
+async function fetchBitmap(url, signal) {
+  const r = await fetch(url, { signal, mode: 'cors' });
+  if (!r.ok) throw new Error(`${r.status} ${url}`);
+  const blob = await r.blob();
+  return createImageBitmap(blob, { imageOrientation: 'flipY', colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+}
 
 export class TextureLab {
   constructor(renderer) {
     this.renderer = renderer;
     this.maxAniso = renderer.capabilities.getMaxAnisotropy();
     this.fileCache = new Map();
-    this.infoCache = new Map();
     this.texCache = new Map();
     this.hdrCache = new Map();
+    this.hdrUpgrades = new Map();
     this.credits = new Map(); // id -> {name, authors, type}
     this.listeners = new Set();
+    this.upgradeListeners = new Set();
     this.pending = 0;
     this.done = 0;
     this.failed = [];
-    this.textureLoader = new THREE.TextureLoader();
-    this.textureLoader.setCrossOrigin('anonymous');
     this.hdrLoader = new HDRLoader();
     this.hdrLoader.setDataType(THREE.HalfFloatType);
+    this.queue = [];          // background full-resolution upgrades
+    this.ready = [];          // decoded upgrades waiting for a frame to upload
+    this.active = 0;
+    this.upgradesEnabled = false;
   }
 
   onProgress(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
+  onHDRIUpgrade(fn) { this.upgradeListeners.add(fn); return () => this.upgradeListeners.delete(fn); }
   _emit(label) {
     for (const fn of this.listeners) fn({ pending: this.pending, done: this.done, label, failed: this.failed.length });
   }
@@ -44,121 +66,203 @@ export class TextureLab {
     } finally { clearTimeout(to); }
   }
 
+  /** Live API fallback for assets that are not in the manifest */
   async files(id) {
-    if (!this.fileCache.has(id)) {
-      let p;
-      try {
-        const k = `ph-files-${id}`;
-        const cached = sessionStorage.getItem(k);
-        if (cached) p = Promise.resolve(JSON.parse(cached));
-      } catch { /* storage unavailable */ }
-      if (!p) p = this._json(`${API}/files/${id}`).then((j) => {
-        try { sessionStorage.setItem(`ph-files-${id}`, JSON.stringify(j)); } catch { /* ignore */ }
-        return j;
-      });
-      this.fileCache.set(id, p);
-    }
+    if (!this.fileCache.has(id)) this.fileCache.set(id, this._json(`${API}/files/${id}`));
     return this.fileCache.get(id);
   }
 
-  async info(id) {
-    if (!this.infoCache.has(id)) {
-      this.infoCache.set(id, this._json(`${API}/info/${id}`).catch(() => null));
-    }
-    return this.infoCache.get(id);
+  _credit(id, type, entry) {
+    this.credits.set(id, { id, type, name: entry?.name || id, authors: entry?.authors || 'Poly Haven', url: `https://polyhaven.com/a/${id}` });
   }
 
-  async _credit(id, type) {
-    const info = await this.info(id);
-    this.credits.set(id, {
-      id, type,
-      name: info?.name || id,
-      authors: info?.authors ? Object.keys(info.authors).join(', ') : 'Poly Haven',
-      url: `https://polyhaven.com/a/${id}`,
-    });
+  // ------------------------------------------------------------------ background upgrades
+  /** Start streaming full-resolution originals (call once the first frame is on screen). */
+  startUpgrades() { this.upgradesEnabled = true; this._pump(); }
+
+  _enqueue(job) { this.queue.push(job); this._pump(); }
+
+  _pump() {
+    if (!this.upgradesEnabled) return;
+    while (this.active < 3 && this.queue.length) {
+      const job = this.queue.shift();
+      this.active++;
+      job.fetch()
+        .then((data) => { this.ready.push({ job, data }); })
+        .catch((e) => console.warn('[TextureLab] upgrade failed', job.label, e))
+        .finally(() => { this.active--; this._pump(); });
+    }
+  }
+
+  /** Called once per frame: upload at most one decoded upgrade so the frame rate never hitches. */
+  tick() {
+    const item = this.ready.shift();
+    if (item) item.job.apply(item.data);
+    return this.queue.length + this.ready.length + this.active;
   }
 
   // ------------------------------------------------------------------ HDRI
+  _loadHDR(url) {
+    return new Promise((resolve, reject) => {
+      const to = setTimeout(() => reject(new Error('timeout')), TIMEOUT * 2);
+      this.hdrLoader.load(url, (t) => { clearTimeout(to); resolve(t); }, undefined, (e) => { clearTimeout(to); reject(e); });
+    });
+  }
+
   /**
-   * Loads an equirectangular HDRI. Resolves {texture, sunDir, sunColor, fallback}
+   * Loads an equirectangular HDRI. Resolves quickly with the 1k version; when `res` is higher the full
+   * version streams in the background and is announced through onHDRIUpgrade(fn).
+   * Resolves {texture, sunDir, sunColor, fallback, id}
    */
   async loadHDRI(id, res = '2k') {
-    const key = `${id}@${res}`;
-    if (this.hdrCache.has(key)) return this.hdrCache.get(key);
+    if (this.hdrCache.has(id)) {
+      this._scheduleHDRUpgrade(id, res);
+      return this.hdrCache.get(id);
+    }
     const p = (async () => {
       const label = `HDRI · ${id}`;
       this._begin(label);
       try {
-        const f = await this.files(id);
-        const entry = f.hdri[res] || f.hdri['1k'];
-        const url = entry.hdr.url;
-        const tex = await new Promise((resolve, reject) => {
-          const to = setTimeout(() => reject(new Error('timeout')), TIMEOUT * 2);
-          this.hdrLoader.load(url, (t) => { clearTimeout(to); resolve(t); }, undefined, (e) => { clearTimeout(to); reject(e); });
-        });
+        const m = MANIFEST.hdris[id];
+        let url1k;
+        if (m) { url1k = m.res['1k']; this._credit(id, 'HDRI', m); }
+        else { const f = await this.files(id); url1k = f.hdri['1k'].hdr.url; this._credit(id, 'HDRI'); }
+        const tex = await this._loadHDR(url1k);
         tex.mapping = THREE.EquirectangularReflectionMapping;
         tex.colorSpace = THREE.LinearSRGBColorSpace;
         const sun = findSun(tex);
-        this._credit(id, 'HDRI');
         this._end(label, true);
-        return { texture: tex, ...sun, fallback: false, id };
+        return { texture: tex, ...sun, fallback: false, id, res: '1k' };
       } catch (e) {
         console.warn('[TextureLab] HDRI failed, using procedural sky', id, e);
         this._end(label, false);
-        return { ...proceduralSky(), fallback: true, id };
+        return { ...proceduralSky(), fallback: true, id, res: '1k' };
       }
     })();
-    this.hdrCache.set(key, p);
+    this.hdrCache.set(id, p);
+    p.then((r) => { if (!r.fallback) this._scheduleHDRUpgrade(id, res); });
     return p;
   }
 
-  // ------------------------------------------------------------------ PBR
-  /**
-   * Loads a PBR set: {map (sRGB), normalMap, arm (AO/Rough/Metal), disp}
-   */
-  async loadPBR(id, res = '2k', { repeat = 1 } = {}) {
+  _scheduleHDRUpgrade(id, res) {
+    if (res === '1k') return;
     const key = `${id}@${res}`;
-    if (this.texCache.has(key)) return this.texCache.get(key);
+    if (this.hdrUpgrades.has(key)) {
+      const done = this.hdrUpgrades.get(key);
+      if (done !== true) return;
+      // already upgraded: re-announce so a re-applied sky picks the sharp version
+      const tex = this._hdrFull.get(key);
+      if (tex) for (const fn of this.upgradeListeners) fn(id, tex);
+      return;
+    }
+    this.hdrUpgrades.set(key, 'queued');
+    this._hdrFull ||= new Map();
+    this._enqueue({
+      label: `HDRI ${id} ${res}`,
+      fetch: async () => {
+        const m = MANIFEST.hdris[id];
+        const url = m ? (m.res[res] || m.res['2k']) : (await this.files(id)).hdri[res].hdr.url;
+        return this._loadHDR(url);
+      },
+      apply: (tex) => {
+        tex.mapping = THREE.EquirectangularReflectionMapping;
+        tex.colorSpace = THREE.LinearSRGBColorSpace;
+        this.hdrUpgrades.set(key, true);
+        this._hdrFull.set(key, tex);
+        for (const fn of this.upgradeListeners) fn(id, tex);
+      },
+    });
+  }
+
+  // ------------------------------------------------------------------ PBR
+  _makeTex(bitmap, srgb) {
+    const t = new THREE.Texture(bitmap);
+    t.flipY = false; // already flipped at decode time (ImageBitmap)
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = this.maxAniso;
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.generateMipmaps = true;
+    t.minFilter = THREE.LinearMipmapLinearFilter;
+    t.needsUpdate = true;
+    return t;
+  }
+
+  /** Swap a texture's pixels for a higher-resolution image (dimensions change → reallocate). */
+  _swap(tex, bitmap) {
+    const old = tex.image;
+    tex.dispose();
+    tex.image = bitmap;
+    tex.needsUpdate = true;
+    if (old && old.close) setTimeout(() => old.close(), 2000);
+  }
+
+  /**
+   * Loads a PBR set: {map (sRGB), normalMap, arm (AO/Rough/Metal)}.
+   * Resolves as soon as the previews are decoded; full-resolution maps replace them in place.
+   */
+  async loadPBR(id, res = '2k') {
+    if (this.texCache.has(id)) { this._scheduleUpgrade(id, res); return this.texCache.get(id); }
     const p = (async () => {
       const label = `PBR · ${id}`;
       this._begin(label);
       try {
-        const f = await this.files(id);
-        const pick = (k) => (f[k] && (f[k][res] || f[k]['1k']))?.jpg?.url;
-        const urls = { map: pick('Diffuse'), normalMap: pick('nor_gl'), arm: pick('arm'), disp: pick('Displacement') };
-        const load = (url, srgb) => new Promise((resolve, reject) => {
-          if (!url) return resolve(null);
-          this.textureLoader.load(url, (t) => {
-            t.wrapS = t.wrapT = THREE.RepeatWrapping;
-            t.anisotropy = this.maxAniso;
-            t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-            t.repeat.set(repeat, repeat);
-            resolve(t);
-          }, undefined, reject);
-        });
-        const [map, normalMap, arm, disp] = await Promise.all([
-          load(urls.map, true), load(urls.normalMap, false), load(urls.arm, false), load(urls.disp, false).catch(() => null),
-        ]);
-        this._credit(id, 'Texture');
+        const m = MANIFEST.textures[id];
+        const set = { id, fallback: false, res: 'preview' };
+        if (m) {
+          this._credit(id, 'Texture', m);
+          const bms = await Promise.all(Object.keys(MAP_KEYS).map((k) => fetchBitmap(m.maps[k].preview)));
+          Object.keys(MAP_KEYS).forEach((k, i) => { set[k] = this._makeTex(bms[i], k === 'map'); });
+        } else {
+          const f = await this.files(id);
+          this._credit(id, 'Texture');
+          const bms = await Promise.all(Object.entries(MAP_KEYS).map(([, k]) => fetchBitmap(f[k]['1k'].jpg.url)));
+          Object.keys(MAP_KEYS).forEach((k, i) => { set[k] = this._makeTex(bms[i], k === 'map'); });
+          set.res = '1k';
+        }
         this._end(label, true);
-        return { id, map, normalMap, arm, disp, fallback: false };
+        return set;
       } catch (e) {
         console.warn('[TextureLab] PBR failed, procedural fallback', id, e);
         this._end(label, false);
-        return { id, ...proceduralPBR(id), fallback: true };
+        return { id, ...proceduralPBR(id), fallback: true, res: 'fallback' };
       }
     })();
-    this.texCache.set(key, p);
+    this.texCache.set(id, p);
+    p.then((set) => { if (!set.fallback) this._scheduleUpgrade(id, res); });
     return p;
   }
 
-  /** Apply a PBR set to a MeshStandardMaterial */
-  static applyPBR(mat, set, repeat = 1) {
-    const clone = (t) => { if (!t) return null; const c = t.clone(); c.repeat.set(repeat, repeat); c.needsUpdate = true; return c; };
-    mat.map = clone(set.map);
-    mat.normalMap = clone(set.normalMap);
-    const arm = clone(set.arm);
-    mat.aoMap = arm; mat.roughnessMap = arm; mat.metalnessMap = arm;
+  _scheduleUpgrade(id, res) {
+    const order = ['preview', '1k', '2k', '4k'];
+    this._texTarget ||= new Map();
+    const cur = this._texTarget.get(id) || 'preview';
+    if (order.indexOf(res) <= order.indexOf(cur)) return;
+    this._texTarget.set(id, res);
+    this.texCache.get(id).then((set) => {
+      for (const k of Object.keys(MAP_KEYS)) {
+        this._enqueue({
+          label: `${id} ${k} ${res}`,
+          fetch: async () => {
+            const m = MANIFEST.textures[id];
+            const url = m ? (m.maps[k][res] || m.maps[k]['2k']) : (await this.files(id))[MAP_KEYS[k]][res].jpg.url;
+            return fetchBitmap(url);
+          },
+          apply: (bitmap) => {
+            // a later request may have asked for a different resolution; ignore stale results
+            if (this._texTarget.get(id) !== res) { bitmap.close?.(); return; }
+            this._swap(set[k], bitmap);
+            set.res = res;
+          },
+        });
+      }
+    });
+  }
+
+  /** Apply a PBR set to a MeshStandardMaterial (textures are shared, so upgrades reach every user). */
+  static applyPBR(mat, set) {
+    mat.map = set.map;
+    mat.normalMap = set.normalMap;
+    mat.aoMap = set.arm; mat.roughnessMap = set.arm; mat.metalnessMap = set.arm;
     mat.roughness = 1; mat.metalness = 1;
     if (set.fallback) { mat.metalness = 0; mat.metalnessMap = null; }
     mat.needsUpdate = true;

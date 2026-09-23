@@ -26,7 +26,9 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--ink); color: var(--text); overflow: hidden; }
 body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
-canvas#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; }
+canvas#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; opacity: 0; transition: opacity 1.4s ease; }
+canvas#gl.ready { opacity: 1; }
+.intro .status { margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--text-3); min-height: 1.4em; }
 #ui { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
 #ui .interactive, #ui button, #ui input, #ui select, #ui a { pointer-events: auto; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }

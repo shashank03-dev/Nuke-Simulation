@@ -110,19 +110,21 @@ export class Terrain {
         pos[k++] = Math.cos(th) * r; pos[k++] = 0; pos[k++] = Math.sin(th) * r;
       }
     }
-    const idx = [];
-    for (let j = 0; j < nt; j++) idx.push(0, 1 + ((j + 1) % nt), 1 + j);
+    // typed index buffer: ~1.4 M indices built without array growth
+    const idx = new Uint32Array(nt * 3 + (nr - 1) * nt * 6);
+    let q = 0;
+    for (let j = 0; j < nt; j++) { idx[q++] = 0; idx[q++] = 1 + ((j + 1) % nt); idx[q++] = 1 + j; }
     for (let i = 1; i < nr; i++) {
       const r0 = 1 + (i - 1) * nt, r1 = 1 + i * nt;
       for (let j = 0; j < nt; j++) {
         const j1 = (j + 1) % nt;
-        idx.push(r0 + j, r0 + j1, r1 + j);
-        idx.push(r0 + j1, r1 + j1, r1 + j);
+        idx[q++] = r0 + j; idx[q++] = r0 + j1; idx[q++] = r1 + j;
+        idx[q++] = r0 + j1; idx[q++] = r1 + j1; idx[q++] = r1 + j;
       }
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setIndex(idx);
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), R);
     return g;
   }

@@ -9,9 +9,31 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23111'/%3E%3Cpath d='M32 32 L32 4 A28 28 0 0 1 56.2 18 Z M32 32 L56.2 46 A28 28 0 0 1 7.8 46 Z M32 32 L7.8 18 A28 28 0 0 1 32 4Z' fill='%23f2b233' transform='rotate(0 32 32)'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23111' stroke='%23f2b233' stroke-width='3'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet" />
-    <link rel="preconnect" href="https://api.polyhaven.com" />
-    <link rel="preconnect" href="https://dl.polyhaven.org" />
+    <!-- fonts load without blocking first paint -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=Special+Elite&display=swap" />
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@500;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=Special+Elite&display=swap" />
+    <link rel="preconnect" href="https://dl.polyhaven.org" crossorigin />
+    <style>html,body{margin:0;background:#0b0b0a}</style>
+    <!-- first-paint assets for the Trinity attract scene start downloading alongside the JavaScript -->
+    <link rel="preload" href="/ph/gravelly_sand_map.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/gravelly_sand_normalMap.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/gravelly_sand_arm.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/dry_ground_rocks_map.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/dry_ground_rocks_normalMap.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/dry_ground_rocks_arm.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/rock_face_map.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/rock_face_normalMap.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/rock_face_arm.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/mud_cracked_dry_03_map.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/mud_cracked_dry_03_normalMap.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/mud_cracked_dry_03_arm.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/rusty_metal_map.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/rusty_metal_normalMap.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/rusty_metal_arm.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/concrete_wall_008_map.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/concrete_wall_008_normalMap.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="/ph/concrete_wall_008_arm.webp" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/qwantani_dawn_puresky_1k.hdr" as="fetch" crossorigin="anonymous" />
   </head>
   <body>
     <canvas id="gl"></canvas>

@@ -336,15 +336,17 @@ export class Props {
     this.materials = {};
   }
 
-  async materialsFor(env) {
+  async materialsFor(scenario) {
     const res = this.quality.texRes;
-    const want = ['rusty_metal', 'concrete_wall_008', 'weathered_plank_siding', 'roof_07', 'rusty_painted_metal', 'bark_brown_02'];
+    // only fetch the Poly Haven sets this scenario's props actually use
+    const need = { trinityTower: ['rusty_metal'], bunkers: ['concrete_wall_008'], fleet: ['rusty_painted_metal', 'weathered_plank_siding'],
+      testArray: ['weathered_plank_siding', 'roof_07', 'bark_brown_02', 'rusty_painted_metal'] };
+    const want = [...new Set((scenario.props || []).flatMap((p) => need[p] || []))];
     const sets = await Promise.all(want.map((id) => this.lab.loadPBR(id, res)));
     const byId = Object.fromEntries(sets.map((s) => [s.id, s]));
     const mk = (id, repeat, extra = {}) => {
-      const m = new THREE.MeshStandardMaterial({ color: 0xffffff, ...extra });
-      const TL = this.lab.constructor;
-      TL.applyPBR(m, byId[id], repeat);
+      const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, ...extra });
+      if (byId[id]) this.lab.constructor.applyPBR(m, byId[id]);
       applyCurvaturePatch(m);
       return m;
     };
@@ -370,8 +372,10 @@ export class Props {
   }
 
   async build(scenario, env, det) {
+    const tok = (this._tok = (this._tok || 0) + 1);
+    await this.materialsFor(scenario);
+    if (tok !== this._tok) return; // superseded by a newer build
     this.clear();
-    await this.materialsFor(env);
     const list = scenario.props || [];
     for (const p of list) {
       if (p === 'trinityTower') this.trinityTower(det);

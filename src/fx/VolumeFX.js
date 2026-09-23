@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { blackbodyRGB } from '../physics/effects.js';
-import { createCloudNoise } from './noise3d.js';
+import { createCloudNoiseAsync, placeholderNoise } from './noise3d.js';
 import { EARTH_R } from '../world/noise.js';
 
 /**
@@ -356,7 +356,8 @@ void main() {
 
 export class VolumeFX {
   constructor() {
-    this.noise = createCloudNoise(64);
+    this.noise = placeholderNoise();
+    this.noiseReady = createCloudNoiseAsync(64).then((tex) => { this.noise = tex; this.material.uniforms.tNoise.value = tex; });
     this.material = new THREE.ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAG,

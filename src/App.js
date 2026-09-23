@@ -103,6 +103,16 @@ export class App {
     };
     this.report = null;
     this.frameMs = 16;
+    this.framesRendered = 0;
+    this._loadToken = 0;
+    // the sharp HDRI arrives after the 1k preview: swap background + reflections, keep the lighting
+    this.lab.onHDRIUpgrade((id, tex) => {
+      if (id !== this.skyId) return;
+      if (this._envRT) this._envRT.dispose();
+      this._envRT = this.pmrem.fromEquirectangular(tex);
+      this.scene.environment = this._envRT.texture;
+      this.scene.background = tex;
+    });
     this._resize = this._resize.bind(this);
     window.addEventListener('resize', this._resize);
     this._resize();
@@ -138,6 +148,7 @@ export class App {
 
   // ------------------------------------------------------------------ scenarios
   async loadScenario(id, overrides = {}) {
+    const token = ++this._loadToken;
     const sc = getScenario(id);
     this.scenario = sc;
     this.params = {
@@ -147,7 +158,9 @@ export class App {
     this.skyPreset = 'scenario';
     this.observerId = sc.defaultObserver;
     await this.rebuild({ textures: true, sky: true, resetTime: true });
+    if (token !== this._loadToken) return; // a newer scenario was requested meanwhile
     this.rig.setObserver(sc.observers.find((o) => o.id === this.observerId));
+    await this.warmup();
     this.emit('scenario', sc);
   }
 
@@ -225,7 +238,9 @@ export class App {
       this._texEnv = env.id;
       const res = this.quality.texRes;
       const t = env.textures;
+      const envId = env.id;
       jobs.push(Promise.all([t.base, t.detail, t.rock, t.special].map((id) => this.lab.loadPBR(id, res))).then((sets) => {
+        if (this._texEnv !== envId) return;
         const tint = env.terrain === 'desert' ? [1.02, 0.98, 0.94] : [1, 1, 1];
         this.terrain.setTextures(sets, tint);
         const scale = env.terrain === 'arctic' ? [1 / 9, 1 / 40, 1 / 16] : [1 / 5, 1 / 7, 1 / 14];
@@ -244,8 +259,9 @@ export class App {
     this.skyPreset = presetId;
     const id = presetId === 'scenario' ? this.env.hdri : presetId;
     const sky = await this.lab.loadHDRI(id, this.quality.hdrRes);
-    if (this.skyPreset !== presetId) return;
+    if (this.skyPreset !== presetId || (presetId === 'scenario' && id !== this.env.hdri)) return;
     this.sky = sky;
+    this.skyId = id;
     const env = this.env;
     if (this._envRT) this._envRT.dispose();
     this._envRT = this.pmrem.fromEquirectangular(sky.texture);
@@ -315,7 +331,7 @@ export class App {
     this.frameMs = this.frameMs * 0.95 + (now - this.lastFrame) * 0.05;
     this.lastFrame = now;
     this.realTime += dtReal;
-    if (!this.det) return;
+    if (!this.det || !this.warm) return;
     if (this.playing) {
       // adaptive slow-mo right at detonation would be jarring; honour the user's rate
       this.t += dtReal * this.rate;
@@ -345,6 +361,9 @@ export class App {
     this._updateAudio(t, dtReal);
 
     this.pipeline.render(this.scene, cam, this.volume, this.fx, this.realTime);
+    // stream full-resolution textures once something is on screen; upload at most one per frame
+    if (++this.framesRendered === 2) { this.lab.startUpgrades(); this.emit('firstframe'); }
+    this.lab.tick();
     this.emit('frame', { t, dtReal });
   }
 
@@ -414,13 +433,12 @@ export class App {
     this.flash.intensity = flashUnits * D * D;
     this.flash.shadow.camera.far = Df * 2 + 1000;
     this.flash.shadow.camera.near = Math.max(5, Df * 0.02);
-    this.flash.castShadow = flashUnits > 0.05;
-    this.flash.visible = flashUnits > 1e-4;
+    // lights stay in the scene at zero intensity: toggling them would change every shader's
+    // light count and force a recompile right at the moment of detonation
     // point fill for everything outside the spot cone (no shadows)
     this.flashFill.position.copy(burst);
     this.flashFill.color.copy(col);
     this.flashFill.intensity = flashUnits * D * D * 0.35;
-    this.flashFill.visible = flashUnits > 1e-4;
     // sky scattering of the flash (the whole sky lights up)
     this.skyFlash.intensity = Math.min(200, flashUnits * 0.12);
 
@@ -491,6 +509,22 @@ export class App {
     const g = t > 0 && t < 2.5 && rep.dose > 0.5 ? Math.min(400, 8 * Math.log10(1 + rep.dose) * 25 * Math.exp(-t)) : 0;
     this.audio.geiger(this.playing ? g : 0);
     this.audio.tick(t, this.playing, this.rate, [...ev, blast], dtReal);
+  }
+
+  /**
+   * Compile every shader program in parallel (KHR_parallel_shader_compile) before the first frame,
+   * instead of stalling the main thread for seconds while the driver compiles them one by one.
+   */
+  async warmup() {
+    const r = this.renderer;
+    const quads = [this.volume.quad, this.pipeline.composite, this.pipeline.bright, this.pipeline.down, this.pipeline.up, this.pipeline.final];
+    const scratch = new THREE.Scene();
+    for (const q of quads) scratch.add(q._mesh);
+    try {
+      await Promise.all([r.compileAsync(this.scene, this.camera), r.compileAsync(scratch, this.camera)]);
+    } catch (e) { console.warn('[App] async compile unavailable', e); }
+    for (const q of quads) scratch.remove(q._mesh);
+    this.warm = true;
   }
 
   start() {
