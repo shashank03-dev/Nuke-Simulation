@@ -202,7 +202,8 @@ function findSun(tex) {
   col.multiplyScalar(1 / m);
   // average sky luminance (ambient) — upper hemisphere
   let aL = 0, n = 0;
-  for (let y = 0; y < h / 2; y += step * 4) for (let x = 0; x < w; x += step * 4) { aL += lumAt((y * w + x) * stride); n++; }
+  // (clamped so the sun disc itself does not dominate the average)
+  for (let y = 0; y < h / 2; y += step * 2) for (let x = 0; x < w; x += step * 2) { aL += Math.min(8, lumAt((y * w + x) * stride)); n++; }
   return { sunDir: dir, sunColor: col, sunPeak: maxL, skyLum: aL / Math.max(1, n) };
 }
 

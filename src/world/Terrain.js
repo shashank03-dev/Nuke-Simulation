@@ -276,7 +276,7 @@ export class Terrain {
             vec3 Nw = wN;
             T = normalize(T - Nw * dot(T, Nw));
             B = normalize(cross(Nw, T));
-            float nStrength = mix(1.0, 0.25, far);
+            float nStrength = mix(0.6, 0.2, far);
             vec3 pn = normalize(Nw + (T * tn.x + B * tn.y) * nStrength);
             normal = normalize((viewMatrix * vec4(pn, 0.0)).xyz);
           }
@@ -306,7 +306,7 @@ export class Terrain {
             for (int i = 0; i < ${MAX_RINGS}; i++) {
               if (i >= uRingCount) break;
               float d = abs(rG - uRingR[i]);
-              float line = 1.0 - smoothstep(px * 0.8, px * 2.0, d);
+              float line = (1.0 - smoothstep(px * 0.8, px * 2.0, d)) * (1.0 - smoothstep(15.0, 90.0, px));
               float fill = (1.0 - smoothstep(uRingR[i] - px, uRingR[i] + px, rG)) * 0.012;
               // rings are a measurement overlay: draw them relative to the scene's brightness
               diffuseColor.rgb = mix(diffuseColor.rgb, uRingC[i], line * 0.75 * uRingsOn);

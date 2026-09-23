@@ -72,6 +72,7 @@ export class CameraRig {
     this.obsPos.set(x, o.air ? o.eye : g + o.eye, z);
     this.autoAim = true;
     this.fov = o.air ? 45 : 50;
+    this._snap = true; // jump straight to the new view instead of easing
     this.setMode(o.id === 'tu95' ? 'aircraft' : 'observer');
   }
 
@@ -162,6 +163,7 @@ export class CameraRig {
     if (!det) return new THREE.Vector3(0, 0, 0);
     if (t <= 0) return new THREE.Vector3(0, Math.max(0, det.hob) + (app.scenario?.id === 'trinity' ? 15 : 0), 0);
     const V = app.volume.state;
+    if (app.photo && V.active) return new THREE.Vector3(0, V.fireY + V.Rf * 0.25, 0);
     let y = V.active ? V.fireY : Math.max(0, det.hob);
     if (det.isUnderwater) y = Math.min(1200, 300 + t * 120);
     // look slightly below the cap centre so the stem is in frame
@@ -195,10 +197,16 @@ export class CameraRig {
       let wantFov = Math.max(6, Math.min(62, (Math.atan2(size * 1.25, dist) * 2 * 180) / Math.PI));
       // before the shot: a natural field of view that shows the landscape and the tower on the horizon
       if (t <= 0) wantFov = 40;
-      const k = 1 - Math.exp(-dt * 2.5);
+      // Rapatronic: long lens, fireball fills a third of the frame
+      if (this.app.photo && V.active) {
+        const R = Math.max(1, V.Rf);
+        wantFov = Math.max(0.3, Math.min(50, (Math.atan2(R * 3.2, pos.distanceTo(new THREE.Vector3(0, V.fireY, 0))) * 2 * 180) / Math.PI));
+      }
+      const k = this._snap ? 1 : 1 - Math.exp(-dt * 2.5);
       this.yaw = lerpAngle(this.yaw, yaw, k);
       this.pitch += (Math.max(-0.5, Math.min(1.2, pitch)) - this.pitch) * k;
-      this.fov += (wantFov - this.fov) * (1 - Math.exp(-dt * 1.2));
+      this.fov += (wantFov - this.fov) * (this._snap ? 1 : 1 - Math.exp(-dt * 1.2));
+      this._snap = false;
     }
     const dir = new THREE.Vector3(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch));
     cam.lookAt(cam.position.clone().add(dir));

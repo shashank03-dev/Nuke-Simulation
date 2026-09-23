@@ -50,6 +50,7 @@ uniform vec4 uWilson;  // radius, thickness, opacity, centerY
 uniform vec4 uCollar;  // y1, y2, radius, strength
 uniform vec4 uBakerA;  // columnH, columnR, strength, domeR
 uniform vec4 uBakerB;  // surgeR, surgeH, surgeStrength, headR
+uniform vec4 uBakerC;  // domeStrength, headStrength, on, _
 uniform vec3 uAlbCap, uAlbStem, uAlbSkirt;
 uniform vec4 uRope;    // strength, length factor, hob, _
 uniform vec4 uSigma;   // cap, stem, skirt, wilson extinction per metre
@@ -91,10 +92,11 @@ void medium(vec3 p, out float sig, out vec3 alb, out vec3 emit) {
       vec3 np = mix(c, pc, m) / scale;
       vec4 n1 = N3(np * 0.85 + vec3(0.13, uTime * 0.002, 0.71));
       vec4 n2 = N3(np * 2.3 + vec3(0.41, 0.2, 0.05));
-      vec4 n3 = N3(np * 5.7 + vec3(0.7, 0.1, 0.3));
-      float billow = (n1.r - 0.5) * 1.0 + (n2.g - 0.5) * 0.55 + (n3.a - 0.5) * 0.25;
-      d -= billow * scale * mix(0.14, 0.5, m);
-      float soft = scale * mix(0.03, 0.09, m);
+      vec4 n3 = N3(np * 4.1 + vec3(0.7, 0.1, 0.3));
+      float billow = (n1.r - 0.5) * 1.0 + (n2.g - 0.5) * 0.5 + (n3.a - 0.5) * 0.14;
+      // billows: displacement proportional to the tube size but bounded so the cap keeps its flattened form
+      d -= billow * scale * mix(0.14, 0.26, m);
+      float soft = scale * mix(0.035, 0.055, m);
       float dens = ss(0.0, soft, -d);
       if (dens > 0.0) {
         float inner = clamp(-d / scale, 0.0, 1.0);
@@ -188,9 +190,9 @@ void medium(vec3 p, out float sig, out vec3 alb, out vec3 emit) {
     for (int i = 0; i < 2; i++) {
       float y = i == 0 ? uCollar.x : uCollar.y;
       float R = uCollar.z * (i == 0 ? 1.0 : 1.25);
-      vec2 q = vec2(length(p.xz) - R * 0.55, (p.y - y) * 2.2);
-      vec4 n = N3(p / R * 0.9 + float(i));
-      float d = length(q) - R * (0.5 + 0.3 * n.r);
+      vec2 q = vec2(length(p.xz) - R * 0.7, (p.y - y) * 3.5);
+      vec4 n = N3(p / R * 1.6 + float(i) * 0.37);
+      float d = length(q) - R * (0.2 + 0.45 * n.r);
       float dens = ss(0.0, -R * 0.2, d) * uCollar.w;
       if (dens > 0.0) {
         float sg = uSigma.w * 1.5 * dens;
@@ -200,7 +202,7 @@ void medium(vec3 p, out float sig, out vec3 alb, out vec3 emit) {
   }
 
   // ---------------------------------------------------------------- Crossroads Baker
-  if (uBakerA.z > 0.0) {
+  if (uBakerC.z > 0.0) {
     float H = uBakerA.x, Rc = uBakerA.y;
     vec3 wat = vec3(0.86, 0.88, 0.9);
     // spray dome
@@ -208,32 +210,34 @@ void medium(vec3 p, out float sig, out vec3 alb, out vec3 emit) {
       float rr = length(p);
       vec4 n = N3(p / uBakerA.w * 0.8);
       float d = abs(rr - uBakerA.w * 0.8) - uBakerA.w * (0.18 + 0.2 * n.r);
-      float dens = ss(0.0, -uBakerA.w * 0.1, d) * step(0.0, p.y) * uBakerA.z;
+      float dens = ss(0.0, -uBakerA.w * 0.1, d) * step(0.0, p.y) * uBakerC.x;
       sig += uSigma.x * dens * 2.0; alb += wat * uSigma.x * dens * 2.0; wsum += uSigma.x * dens * 2.0;
     }
     // hollow column
-    if (H > 1.0 && p.y > -5.0 && p.y < H * 1.05 && dot(p.xz, p.xz) < Rc * Rc * 4.0) {
+    if (uBakerA.z > 0.0 && H > 1.0 && p.y > -5.0 && p.y < H * 1.05 && dot(p.xz, p.xz) < Rc * Rc * 4.0) {
       float yn = p.y / H;
       float rad = Rc * (0.9 + 0.35 * yn * yn);
       vec3 sp = p / Rc;
-      vec4 n = N3(sp * vec3(0.5, 0.15, 0.5) + vec3(0.0, -uTime * 0.02, 0.0));
-      vec4 n2 = N3(sp * 1.4);
+      vec4 n = N3(sp * vec3(1.2, 0.35, 1.2) + vec3(0.0, -uTime * 0.02, 0.0));
+      vec4 n2 = N3(sp * 1.9);
       float wall = Rc * (0.28 + 0.15 * n.r);
       float d = abs(length(p.xz) - rad * 0.78) - wall;
       d -= (n2.g - 0.5) * Rc * 0.25;
-      float dens = ss(0.0, -Rc * 0.12, d) * ss(H * 1.05, H * 0.8, p.y) * uBakerA.z;
+      float rr2 = length(p.xz) / (rad * 1.25);
+      float topY = H * (1.0 - 0.35 * rr2 * rr2) + (n.r - 0.5) * Rc * 0.9;
+      float dens = ss(0.0, -Rc * 0.12, d) * ss(topY + Rc * 0.2, topY - Rc * 0.3, p.y) * uBakerA.z;
       sig += uSigma.y * dens * 3.0; alb += wat * uSigma.y * dens * 3.0; wsum += uSigma.y * dens * 3.0;
     }
     // cauliflower head
     if (uBakerB.w > 0.0) {
-      vec3 c = p - vec3(0.0, H + uBakerB.w * 0.35, 0.0);
+      vec3 c = p - vec3(0.0, max(H, uBakerC.w) + uBakerB.w * 0.35, 0.0);
       float Rh = uBakerB.w;
       if (dot(c, c) < Rh * Rh * 4.0) {
         vec4 n = N3(c / Rh * 0.55 + vec3(0.2, uTime * 0.003, 0.4));
         vec4 n2 = N3(c / Rh * 1.6);
         vec3 e = c / vec3(Rh, Rh * 0.8, Rh);
         float d = (length(e) - 1.0) * Rh - (n.r - 0.45) * Rh * 0.55 - (n2.g - 0.5) * Rh * 0.2;
-        float dens = ss(0.0, -Rh * 0.12, d) * uBakerA.z;
+        float dens = ss(0.0, -Rh * 0.12, d) * uBakerC.y;
         sig += uSigma.x * dens; alb += wat * uSigma.x * dens; wsum += uSigma.x * dens;
       }
     }
@@ -324,7 +328,8 @@ void main() {
       float Ts = exp(-od);
       float powder = 1.0 - exp(-sg * dt * 2.0);
       float hN = clamp(p.y / max(uBound.y, 1.0), 0.0, 1.0);
-      vec3 amb = mix(uAmbBot, uAmbTop, hN);
+      // ambient: sky light plus a crude multiple-scattering boost (clouds glow almost as bright as the sky)
+      vec3 amb = mix(uAmbBot, uAmbTop, hN) * (1.6 + 1.2 * Ts);
       // light from the fireball / glowing core
       vec3 fd = p - fireC;
       float fr = max(uFire.y, uCap.y * 0.6);
@@ -384,6 +389,7 @@ export class VolumeFX {
         uCollar: { value: new THREE.Vector4() },
         uBakerA: { value: new THREE.Vector4() },
         uBakerB: { value: new THREE.Vector4() },
+        uBakerC: { value: new THREE.Vector4() },
         uAlbCap: { value: new THREE.Color(0.8, 0.78, 0.75) },
         uAlbStem: { value: new THREE.Color(0.6, 0.5, 0.4) },
         uAlbSkirt: { value: new THREE.Color(0.6, 0.5, 0.4) },
@@ -443,13 +449,16 @@ export class VolumeFX {
     const E0 = 900; // HDR radiance scale for the fireball surface at the principal maximum
     const no2 = T < 3200 ? Math.min(1, (3200 - T) / 1500) : 0;
     const tint = [1, 1 - 0.35 * no2, 1 - 0.55 * no2];
-    const fe = bb.map((c, i) => c * lum * E0 * tint[i]);
+    let fe = bb.map((c, i) => c * lum * E0 * tint[i]);
+    // keep radiance inside half-float range (the X-ray fireball would otherwise overflow the buffers)
+    const feMax = Math.max(...fe);
+    if (feMax > 24000) fe = fe.map((c) => (c * 24000) / feMax);
     U.uFireEmit.value.setRGB(fe[0], fe[1], fe[2]);
     // late glowing core: orange-red, decaying over tens of seconds (visible in Trinity/Tsar films)
     const glowTau = 6 + 3 * Math.pow(W, 0.2);
     const glow = Math.exp(-Math.max(0, t - det.tMax * 3) / glowTau) * smooth(det.tMax, det.tMax * 6, t);
     U.uGlowEmit.value.setRGB(9 * glow, 2.6 * glow, 0.6 * glow).multiplyScalar(uw ? 0 : 1);
-    U.uFireLight.value.setRGB(fe[0] * 0.02 + 5 * glow, fe[1] * 0.02 + 1.6 * glow, fe[2] * 0.02 + 0.4 * glow);
+    U.uFireLight.value.setRGB(fe[0] * 0.02 + 5 * glow, fe[1] * 0.02 + 1.6 * glow, fe[2] * 0.02 + 0.4 * glow).multiplyScalar(uw ? 0 : 1);
     U.uFire.value.set(fireY, Rf, m, uw ? 0 : 1);
     // caps flatten as they spread; megaton clouds punch into the stratosphere and pancake
     const flatten = (W > 2000 ? 0.5 : 0.62) + (1 - m) * 0.3;
@@ -480,11 +489,11 @@ export class VolumeFX {
     const tw0 = det.tMax * 0.6, tw1 = tw0 + 1.5 * Math.sqrt(Math.cbrt(W)) * (uw ? 1.2 : 1);
     const wilsonOp = hum > 0.55 ? smooth(tw0 * 0.5, tw0 * 1.5, t) * (1 - smooth(tw0 + (tw1 - tw0) * 0.4, tw1, t)) * (hum - 0.4) * 1.6 : 0;
     const wilsonR = det.shockRadius(Math.min(t, tw0 * 3 + 0.2)) * 0.96;
-    U.uWilson.value.set(wilsonR, wilsonR * 0.07, wilsonOp, uw ? 0 : hob);
+    U.uWilson.value.set(wilsonR, wilsonR * 0.07, wilsonOp, hob);
 
     // condensation collars around the rising stem (humid layers)
     const collarS = hum > 0.5 && !uw ? smooth(det.tToroid * 1.5, det.tToroid * 4, t) * (1 - smooth(det.stabilizeTime * 0.6, det.stabilizeTime * 1.4, t)) * 0.8 : 0;
-    U.uCollar.value.set(capH * 0.42, capH * 0.62, stemR * 2.6, collarS);
+    U.uCollar.value.set(capH * 0.45, capH * 0.63, stemR * 1.5, collarS * 0.45);
 
     // ------- Baker
     if (uw) {
@@ -492,15 +501,18 @@ export class VolumeFX {
       const colS = smooth(0.02, 0.3, t) * (1 - smooth(25, 90, t));
       const domeR = t < 1.5 ? 60 + 330 * Math.sqrt(t) : 0;
       const domeS = domeR > 0 ? 1 - smooth(0.6, 1.5, t) : 0;
-      U.uBakerA.value.set(colH, 310, Math.max(colS, domeS), domeR);
+      U.uBakerA.value.set(colH, 310, colS, domeR);
       const surgeT = Math.max(0, t - 9);
       const surgeR = surgeT > 0 ? 350 + 1800 * Math.pow(surgeT / 150, 0.55) : 0;
       const surgeS = surgeT > 0 ? smooth(0, 8, surgeT) * (1 - smooth(300, 900, surgeT)) : 0;
       const headR = smooth(0.8, 6, t) * (320 + 330 * smooth(3, 40, t)) * (1 - 0.3 * smooth(60, 400, t));
       U.uBakerB.value.set(surgeR, 260 + 80 * smooth(10, 120, t), surgeS, headR);
+      // the cauliflower head stays aloft after the column falls back
+      U.uBakerC.value.set(domeS, headR > 1 ? 1 - smooth(300, 1200, t) : 0, 1, 1650 * smooth(0.5, 9, t));
     } else {
       U.uBakerA.value.set(0, 0, 0, 0);
       U.uBakerB.value.set(0, 0, 0, 0);
+      U.uBakerC.value.set(0, 0, 0, 0);
     }
 
     // ------- albedos (dust vs condensation vs coral)
@@ -516,7 +528,7 @@ export class VolumeFX {
 
     // extinction coefficients scale with cloud size (thin in absolute terms, still opaque at scale)
     const capSig = 2.5 / Math.max(40, tube);
-    U.uSigma.value.set(capSig, 2.2 / Math.max(30, stemR * 1.5), 1.6 / Math.max(20, skirtH), 1.2 / Math.max(20, wilsonR * 0.07));
+    U.uSigma.value.set(capSig, 2.2 / Math.max(30, stemR * 1.5), 1.6 / Math.max(20, skirtH), 0.22 / Math.max(20, wilsonR * 0.07));
     if (uw) U.uSigma.value.set(3 / 250, 3 / 200, 2.2 / 250, U.uSigma.value.w);
 
     // ------- bounding cylinder
@@ -528,7 +540,7 @@ export class VolumeFX {
     if (uw) {
       const A = U.uBakerA.value, B = U.uBakerB.value;
       rad = Math.max(rad, A.y * 2.2, A.w * 1.4, B.x * 1.3, B.w * 2);
-      top = Math.max(top, A.x + B.w * 2.2, A.w * 1.4, B.y * 2.5);
+      top = Math.max(top, A.x + B.w * 2.2, U.uBakerC.value.w + B.w * 2.2, A.w * 1.4, B.y * 2.5);
     }
     U.uBound.value.set(rad, top, -60 - light.curvDrop, 1);
     S.fireY = fireY; S.Rf = Rf; S.fe = fe; S.glow = glow; S.m = m; S.shockR = shockR; S.top = top; S.rad = rad;

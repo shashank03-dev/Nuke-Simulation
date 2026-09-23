@@ -366,6 +366,7 @@ export class Props {
     for (const c of [...this.root.children]) if (c !== this.debris.mesh) this.root.remove(c);
     this.debris.clear();
     this.items = []; this.structures = []; this.veg = [];
+    this.aircraft = null;
   }
 
   async build(scenario, env, det) {

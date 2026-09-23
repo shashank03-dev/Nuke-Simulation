@@ -258,19 +258,21 @@ export class App {
     const elev = sd.y;
     this.lightInfo.sunDir.copy(sd.y < 0.03 ? new THREE.Vector3(sd.x, 0.03, sd.z).normalize() : sd);
     this.lightInfo.sunColor.copy(sky.sunColor);
-    const sunStrength = night ? 0.02 : smooth(-0.05, 0.12, elev) * Math.min(3.2, 0.9 + sky.sunPeak / 400);
+    // the renderer already applies the incidence angle; only fade out once the sun is actually below the horizon
+    const sunStrength = night ? 0.02 : smooth(-0.04, 0.015, elev) * Math.min(3.2, 1.2 + sky.sunPeak / 400);
     this.sunStrength = sunStrength;
     this.sun.color.copy(sky.sunColor);
     this.sun.intensity = sunStrength;
     const skyL = Math.min(2, sky.skyLum) * env.bgIntensity;
     this.skyLum = skyL;
-    this.lightInfo.ambTop.setRGB(0.55, 0.65, 0.85).multiplyScalar(skyL * 0.9 + 0.01);
+    this.lightInfo.ambTop.setRGB(0.62, 0.7, 0.86).multiplyScalar(skyL * 0.9 + 0.01);
     this.lightInfo.ambBot.setRGB(...env.dustColor).multiplyScalar(skyL * 0.35 + 0.005);
     this.lightInfo.fogCol.setRGB(...env.fog).multiplyScalar(skyL * 0.85 + 0.005);
     this.lightInfo.fogDen = env.fogDensity;
     this.scene.fog = new THREE.FogExp2(this.lightInfo.fogCol.clone(), env.fogDensity);
     // exposure: bring the ambient scene to a pleasant key
-    this.baseExposure = env.exposure * Math.min(8, 0.9 / Math.max(0.06, skyL * 0.8 + sunStrength * 0.18));
+    // expose for the sky's average radiance, like a photographer metering the scene
+    this.baseExposure = env.exposure * Math.min(10, 0.75 / Math.max(0.03, skyL * 0.85 + sunStrength * 0.08));
     this.emit('sky', { id });
   }
 
@@ -299,6 +301,9 @@ export class App {
     if (on) {
       this.pause();
       this.seek(this.scenario.photo?.t ?? 0.001);
+      if (this.rig.mode !== 'observer') this.rig.setMode('observer');
+      this.rig.autoAim = true;
+      this.rig._snap = true;
     }
     this.emit('photo', on);
   }
@@ -432,9 +437,12 @@ export class App {
     const ratio = flashUnits / ambient;
     // luminance of the fireball as seen: big close fireballs dominate the frame
     const fbAng = V.active ? Math.min(1, (V.Rf || 0) / D) : 0;
-    const fbLum = V.active ? Math.max(...V.fe) * fbAng * fbAng * 2 : 0;
-    const target = this.photo ? this.baseExposure * 0.02 : this.baseExposure / (1 + ratio * 0.9 + fbLum * 0.4);
-    const k = target < this.exposure ? 1 - Math.exp(-dtReal / 0.06) : 1 - Math.exp(-dtReal / 1.8);
+    const fbLum = V.active && !det.isUnderwater ? Math.max(...V.fe) * fbAng * fbAng * 2 : 0;
+    // photo mode meters on the fireball itself, like a Rapatronic exposure
+    const photoExp = V.active ? 3.2 / Math.max(0.5, Math.max(...V.fe)) : this.baseExposure;
+    // adaptation is compressive (like film latitude / the eye), so the flash-lit landscape stays readable
+    const target = this.photo ? photoExp : this.baseExposure / Math.pow(1 + ratio * 0.9 + fbLum * 0.4, 0.72);
+    const k = this.photo ? 1 : target < this.exposure ? 1 - Math.exp(-dtReal / 0.06) : 1 - Math.exp(-dtReal / 1.8);
     this.exposure += (target - this.exposure) * k;
     if (!isFinite(this.exposure)) this.exposure = this.baseExposure;
     const fx = this.fx;

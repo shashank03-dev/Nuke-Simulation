@@ -32,7 +32,16 @@ float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
 
 // depth-aware upsample of the half-res volume buffer (avoids halos around the tower / ships)
-vec4 volUp(vec2 uv) { return texture(tVol, uv); }
+vec4 volUp(vec2 uv) {
+  // tent-filtered upsample: hides the ray-march dither of the half-res volume buffer
+  vec2 o = uVolTexel * 0.75;
+  vec4 c = texture(tVol, uv) * 0.4;
+  c += texture(tVol, uv + vec2(o.x, o.y)) * 0.15;
+  c += texture(tVol, uv + vec2(-o.x, o.y)) * 0.15;
+  c += texture(tVol, uv + vec2(o.x, -o.y)) * 0.15;
+  c += texture(tVol, uv + vec2(-o.x, -o.y)) * 0.15;
+  return c;
+}
 
 void main() {
   vec2 ndc = vUv * 2.0 - 1.0;
@@ -269,6 +278,7 @@ export class Pipeline {
     C.tScene.value = this.sceneRT.texture;
     C.tDepth.value = this.sceneRT.depthTexture;
     C.tVol.value = volume.target.texture;
+    C.uVolTexel.value.set(1 / volume.target.width, 1 / volume.target.height);
     C.uProjInv.value.copy(camera.projectionMatrixInverse);
     C.uCamWorld.value.copy(camera.matrixWorld);
     C.uCamPos.value.copy(camera.position);

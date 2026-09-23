@@ -158,8 +158,8 @@ export class Ocean {
             float s = 1.0 - smoothstep(uBaker.z * 0.85, uBaker.z * 1.05, rG);
             foam = max(foam, s * uBaker.w * (0.55 + 0.45 * vnoise(vWorld.xz / 18.0 + uTime * 0.2)));
           }
-          foam = max(foam, smoothstep(0.6, 1.6, vCrest) * 0.6);
-          foam = max(foam, shallow * smoothstep(0.45, 0.9, vnoise(vWorld.xz / 6.0 + vec2(uTime * 0.3, 0.0))) * step(vDepth, 1.6));
+          foam = max(foam, smoothstep(0.9, 2.2, vCrest) * 0.4);
+          foam = max(foam, shallow * smoothstep(0.55, 0.95, vnoise(vWorld.xz / 6.0 + vec2(uTime * 0.3, 0.0))) * step(vDepth, 0.7) * 0.7);
           diffuseColor.rgb = mix(wc, vec3(0.85, 0.88, 0.9), foam);
           diffuseColor.a = mix(mix(0.72, 0.985, 1.0 - shallow), 1.0, foam);
         `)

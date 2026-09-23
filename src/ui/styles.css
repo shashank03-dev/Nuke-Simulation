@@ -166,7 +166,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .effects li::before { content: ''; position: absolute; left: 0; top: .55em; width: 5px; height: 5px; background: var(--amber); }
 
 .controls { position: absolute; left: var(--gutter); top: 170px; width: 280px; padding: 12px 14px; max-height: calc(100vh - 170px - 150px); overflow-y: auto; transition: opacity .3s, transform .3s; }
-.controls.closed { transform: translateX(calc(-100% - 30px)); }
+.controls.collapsed { max-height: 44px; overflow: hidden; }
+.controls.collapsed > *:not(h5) { visibility: hidden; }
 .ctl { margin-bottom: 14px; }
 .ctl label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--text-2); margin-bottom: 5px; }
 .ctl label b { color: var(--text); font-weight: 500; }

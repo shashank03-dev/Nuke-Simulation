@@ -139,7 +139,7 @@ export class UI {
           h('button', { class: 'btn primary', onclick: async () => { wrap.remove(); this.closeArchive(); await this.enterScenario(s.id); } }, 'Enter sandbox ▸'),
           h('button', { class: 'btn', onclick: () => wrap.remove() }, 'Back'))));
     this.root.append(wrap);
-    wrap.querySelector('.btn.primary').focus();
+    wrap.querySelector('.btn.primary').focus({ preventScroll: true });
   }
 
   async enterScenario(id) {
@@ -201,12 +201,21 @@ export class UI {
     this.hud = h('div', { class: 'hud' }, this.ringLabels, title, top, readout, controls, cams, tl, this.notes, this.photoFrame);
     this.root.append(this.hud);
     this.bindKeys();
-    app.on('photo', (on) => {
-      this.photoFrame.classList.toggle('hidden', !on);
-      this.photoBtn.classList.toggle('on', on);
-      for (const el of [title, readout, controls, cams, tl, top, this.notes, this.ringLabels]) el.style.opacity = on ? '0' : '';
-      for (const el of [readout, controls, cams, tl, top]) el.style.pointerEvents = on ? 'none' : '';
-    });
+    this.hudParts = { title, readout, controls, cams, tl, top };
+    if (!this._photoBound) {
+      this._photoBound = true;
+      app.on('photo', (on) => {
+        const P = this.hudParts;
+        this.photoFrame.classList.toggle('hidden', !on);
+        this.photoBtn.classList.toggle('on', on);
+        for (const el of [P.title, P.readout, P.controls, P.cams, P.tl, P.top, this.notes, this.ringLabels]) el.style.opacity = on ? '0' : '';
+        for (const el of [P.readout, P.controls, P.cams, P.tl, P.top]) el.style.pointerEvents = on ? 'none' : '';
+      });
+      app.on('play', () => { this.playBtn.textContent = '❚❚'; });
+      app.on('pause', () => { this.playBtn.textContent = '▶'; });
+      app.on('camera', () => this.refreshCams());
+      app.on('observer', () => this.refreshCams());
+    }
     this.refreshControls();
   }
 
@@ -248,8 +257,13 @@ export class UI {
     const presets = h('div', { class: 'row-btns' },
       [['Hiroshima', 15, 580], ['W88', 475, 1800], ['1 Mt', 1000, 2400], ['Ivy Mike', 10400, 0], ['100 Mt', 100000, 5000]].map(([n, y, hb]) =>
         h('button', { class: 'chip', onclick: () => this.applyParams({ yieldKt: y, hob: hb }) }, n)));
-    this.controlsEl = h('div', { class: 'controls panel', 'aria-label': 'Parameters' },
-      h('h5', {}, 'Parameters'),
+    const collapse = h('button', { class: 'chip', style: 'float:right;margin-top:-4px', 'aria-expanded': 'true', onclick: () => {
+      const closed = this.controlsEl.classList.toggle('collapsed');
+      collapse.textContent = closed ? 'Show ▾' : 'Hide ▴';
+      collapse.setAttribute('aria-expanded', String(!closed));
+    } }, 'Hide ▴');
+    this.controlsEl = h('div', { class: `controls panel ${window.innerWidth < 1500 ? 'collapsed' : ''}`, 'aria-label': 'Parameters' },
+      h('h5', {}, 'Parameters', collapse),
       h('div', { class: 'ctl' }, h('label', {}, 'Yield', yieldLabel), this.yieldInput),
       h('div', { class: 'ctl' }, h('label', {}, 'Height of burst', hobLabel), this.hobInput),
       h('div', { class: 'ctl' }, h('label', {}, 'Comparisons'), presets),
@@ -266,6 +280,7 @@ export class UI {
         h('kbd', {}, 'Space'), ' play · ', h('kbd', {}, 'D'), ' detonate · ', h('kbd', {}, 'R'), ' reset · ', h('kbd', {}, 'P'), ' photo · ',
         h('kbd', {}, 'O'), ' orbit · ', h('kbd', {}, 'V'), ' observer · ', h('kbd', {}, 'H'), ' hide UI · drag = look · wheel = zoom · double-click = re-track'),
       this.fpsEl = h('div', { class: 'fps', style: 'margin-top:8px' }));
+    if (this.controlsEl.classList.contains('collapsed')) collapse.textContent = 'Show ▾';
     return this.controlsEl;
   }
 
@@ -328,8 +343,6 @@ export class UI {
         h('div', { class: 'grow' }),
         h('div', { class: 'rates', role: 'group', 'aria-label': 'Time scale' }, this.rateBtns)),
       this.track);
-    app.on('play', () => { this.playBtn.textContent = '❚❚'; });
-    app.on('pause', () => { this.playBtn.textContent = '▶'; });
     this.buildTimelineMarks();
     return this.tlEl;
   }
@@ -386,8 +399,6 @@ export class UI {
         h('span', { class: 'fps' }, 'Lens'), h('input', { type: 'range', min: 2, max: 80, value: 50, 'aria-label': 'Field of view', oninput: (e) => { app.rig.autoAim = false; app.rig.setFov(+e.target.value); } }), this.fovEl),
       h('h5', { style: 'margin-top:12px' }, 'Historical posts'),
       h('div', { class: 'obs-list' }, this.obsBtns));
-    app.on('camera', () => this.refreshCams());
-    app.on('observer', () => this.refreshCams());
     this.refreshCams();
     return el;
   }
@@ -480,6 +491,26 @@ export class UI {
     }
     this.updateRingLabels();
     this.updateNotes();
+    this.autoQuality();
+  }
+
+  /** Step quality down once if the GPU can't keep up (sustained > 45 ms frames). */
+  autoQuality() {
+    const app = this.app;
+    if (this._autoQDone || document.hidden) return;
+    const order = ['ultra', 'high', 'medium', 'low'];
+    const i = order.indexOf(app.qualityKey);
+    if (i < 0 || i >= order.length - 1) return;
+    const now = performance.now();
+    if (app.frameMs > 45) {
+      this._slowSince ??= now;
+      if (now - this._slowSince > 4000) {
+        this._autoQDone = true;
+        app.setQuality(order[i + 1]);
+        this.refreshControls();
+        this.toast(`Render quality lowered to ${order[i + 1]} to keep things smooth. Change it under Parameters.`);
+      }
+    } else this._slowSince = null;
   }
 
   updateReadout() {
@@ -516,16 +547,22 @@ export class UI {
     const toGZ = new THREE.Vector3(-cam.position.x, 0, -cam.position.z).normalize();
     const right = new THREE.Vector3(-toGZ.z, 0, toGZ.x);
     const on = app.ringsOn && !app.photo;
+    const placed = [];
     this.rings.forEach((r, i) => {
       const el = this.ringEls[i];
-      const p = right.clone().multiplyScalar(r.radius);
+      // fan the labels out over different bearings so they don't pile up on the horizon
+      const ang = (i % 2 ? -1 : 1) * (0.25 + 0.18 * Math.floor(i / 2));
+      const dir = right.clone().multiplyScalar(Math.cos(ang)).addScaledVector(toGZ, -Math.sin(ang) * (i % 2 ? -1 : 1));
+      const p = dir.multiplyScalar(r.radius);
       p.y = app.terrain.surfaceAt(p.x, p.z, app.env.water) + 2;
       const d = p.distanceTo(cam.position);
       p.y -= (Math.pow(Math.hypot(p.x - cam.position.x, p.z - cam.position.z), 2)) / (2 * 6371000);
       const q = p.project(cam);
-      const vis = on && q.z < 1 && Math.abs(q.x) < 1.1 && Math.abs(q.y) < 1.1 && d < 400000;
+      let vis = on && q.z < 1 && Math.abs(q.x) < 1.1 && Math.abs(q.y) < 1.1 && d < 400000;
+      const sx = (q.x * 0.5 + 0.5) * w, sy = (-q.y * 0.5 + 0.5) * hgt;
+      if (vis && placed.some(([x, y]) => Math.abs(x - sx) < 170 && Math.abs(y - sy) < 20)) vis = false;
       el.style.display = vis ? '' : 'none';
-      if (vis) { el.style.left = `${(q.x * 0.5 + 0.5) * w}px`; el.style.top = `${(-q.y * 0.5 + 0.5) * hgt}px`; }
+      if (vis) { placed.push([sx, sy]); el.style.left = `${sx}px`; el.style.top = `${sy}px`; }
     });
   }
 
